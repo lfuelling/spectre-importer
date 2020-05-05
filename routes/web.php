@@ -1,18 +1,14 @@
 <?php
+declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
-*/
+Route::get('/', 'IndexController@index')->name('index');
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// validate access token:
+Route::get('/token', 'TokenController@index')->name('token.index');
+Route::get('/token/validate', 'TokenController@doValidate')->name('token.validate');
+
+// start import thing.
+Route::get('/import/start', ['uses' => 'Import\StartController@index', 'as' => 'import.start']);
+Route::post('/import/upload', ['uses' => 'Import\UploadController@upload', 'as' => 'import.upload']);
