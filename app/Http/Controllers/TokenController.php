@@ -24,9 +24,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Services\Spectre\Request\ListCustomersRequest;
+use App\Services\Spectre\Response\ErrorResponse;
 use GrumpyDictator\FFIIIApiSupport\Exceptions\ApiHttpException;
 use GrumpyDictator\FFIIIApiSupport\Request\SystemInformationRequest;
-use GrumpyDictator\FFIIIApiSupport\Response\SystemInformationResponse;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -46,30 +46,17 @@ class TokenController extends Controller
     public function doValidate(): JsonResponse
     {
         $response = ['result' => 'OK', 'message' => null];
-        $uri      = (string) config('spectre.uri');
-        $token    = (string) config('spectre.access_token');
-        $request  = new SystemInformationRequest($uri, $token);
-        try {
-            $result = $request->get();
-        } catch (ApiHttpException $e) {
-            return respnse()->json(['result' => 'NOK', 'message' => $e->getMessage()]);
+        $error    = $this->verifyFireflyIII();
+        if (null !== $error) {
+            // send user error:
+            return response()->json(['result' => 'NOK', 'message' => $error]);
         }
-        // -1 = OK (minimum is smaller)
-        // 0 = OK (same version)
-        // 1 = NOK (too low a version)
 
-        $minimum = (string) config('spectre.minimum_version');
-        $compare = version_compare($minimum, $result->version);
-        if (1 === $compare) {
-            $errorMessage = sprintf(
-                'Your Firefly III version %s is below the minimum required version %s',
-                $result->version, $minimum
-            );
-            $response     = ['result' => 'NOK', 'message' => $errorMessage];
-        }
-        $message = $this->verifySpectre();
-        if (null !== $message) {
-            $response = ['result' => 'NOK', 'message' => $message];
+        // Spectre:
+        $error = $this->verifySpectre();
+        if (null !== $error) {
+            // send user error:
+            return response()->json(['result' => 'NOK', 'message' => $error]);
         }
 
         return response()->json($response);
@@ -82,58 +69,70 @@ class TokenController extends Controller
      */
     public function index()
     {
-        $uri          = (string) config('spectre.uri');
-        $token        = (string) config('spectre.access_token');
-        $request      = new SystemInformationRequest($uri, $token);
-        $errorMessage = 'No error message.';
-        $isError      = false;
-        $result       = null;
-        $compare      = 1;
-        $minimum      = '';
-        try {
-            /** @var SystemInformationResponse $result */
-            $result = $request->get();
-        } catch (ApiHttpException $e) {
-            $errorMessage = $e->getMessage();
-            $isError      = true;
-        }
-        // -1 = OK (minimum is smaller)
-        // 0 = OK (same version)
-        // 1 = NOK (too low a version)
-        if (false === $isError) {
-            $minimum = config('spectre.minimum_version');
-            $compare = version_compare($minimum, $result->version);
-        }
-        if (false === $isError && 1 === $compare) {
-            $errorMessage = sprintf('Your Firefly III version %s is below the minimum required version %s', $result->version, $minimum);
-            $isError      = true;
-        }
-
-        // continue with Spectre check.
-        if (false === $isError) {
-            $message = $this->verifySpectre();
-            if (null !== $message) {
-                $isError      = true;
-                $errorMessage = $message;
-            }
-        }
-
-        if (false === $isError) {
-            return redirect(route('index'));
-        }
         $pageTitle = 'Token error';
 
-        return view('token.index', compact('errorMessage', 'pageTitle'));
+        // verify Firefly III
+        $errorMessage = $this->verifyFireflyIII();
+        if (null !== $errorMessage) {
+            return view('token.index', compact('errorMessage', 'pageTitle'));
+        }
+
+        // verify Spectre:
+        $errorMessage = $this->verifySpectre();
+
+        if (null !== $errorMessage) {
+            return view('token.index', compact('errorMessage', 'pageTitle'));
+        }
+
+        return redirect(route('index'));
     }
 
     /**
      * @return string|null
      */
-    private function verifySpectre(): ?string {
-        $uri = config('spectre.spectre_uri');
-        $appId = config('spectre.spectre_app_id');
-        $secret = config('spectre.spectre_secret');
-        $request=  new ListCustomersRequest();
+    private function verifyFireflyIII(): ?string
+    {
+        // verify access
+        $uri     = (string) config('spectre.uri');
+        $token   = (string) config('spectre.access_token');
+        $request = new SystemInformationRequest($uri, $token);
+        try {
+            $result = $request->get();
+        } catch (ApiHttpException $e) {
+            return $e->getMessage();
+        }
+        // -1 = OK (minimum is smaller)
+        // 0 = OK (same version)
+        // 1 = NOK (too low a version)
+
+        // verify version:
+        $minimum = (string) config('spectre.minimum_version');
+        $compare = version_compare($minimum, $result->version);
+        if (1 === $compare) {
+            return sprintf(
+                'Your Firefly III version %s is below the minimum required version %s',
+                $result->version, $minimum
+            );
+        }
+
+        return null;
+    }
+
+    /**
+     * @return string|null
+     */
+    private function verifySpectre(): ?string
+    {
+        $uri      = config('spectre.spectre_uri');
+        $appId    = config('spectre.spectre_app_id');
+        $secret   = config('spectre.spectre_secret');
+        $request  = new ListCustomersRequest($uri, $appId, $secret);
+        $response = $request->get();
+        if ($response instanceof ErrorResponse) {
+            return sprintf('%s: %s', $response->class, $response->message);
+        }
+
+        exit;
     }
 
 }
