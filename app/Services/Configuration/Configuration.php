@@ -94,13 +94,13 @@ class Configuration
     {
         $version                             = $array['version'] ?? 1;
         $object                              = new self;
-        $object->ignoreDuplicateTransactions = $array['ignore_duplicate_transactions'];
-        $object->rules                       = $array['rules'];
-        $object->skipForm                    = $array['skip_form'];
-        $object->skipKey                     = $array['skip_key'];
+        $object->ignoreDuplicateTransactions = $array['ignore_duplicate_transactions'] ?? false;
+        $object->rules                       = $array['rules'] ?? true;
+        $object->skipForm                    = $array['skip_form'] ?? false;
+        $object->skipKey                     = $array['skip_key'] ?? false;
         $object->addImportTag                = $array['add_import_tag'] ?? true;
-        $object->mapping                     = $array['mapping'];
-        $object->doMapping                   = $array['do_mapping'];
+        $object->mapping                     = $array['mapping'] ?? [];
+        $object->doMapping                   = $array['do_mapping'] ?? [];
         $object->version                     = $version;
 
         return $object;
@@ -218,6 +218,14 @@ class Configuration
     public function setRoles(array $roles): void
     {
         $this->roles = $roles;
+    }
+
+    /**
+     * @param bool $skipKey
+     */
+    public function setSkipKey(bool $skipKey): void
+    {
+        $this->skipKey = $skipKey;
     }
 
     /**

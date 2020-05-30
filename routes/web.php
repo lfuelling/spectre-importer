@@ -30,12 +30,22 @@ Route::get('/', 'IndexController@index')->name('index');
 Route::get('/token', 'TokenController@index')->name('token.index');
 Route::get('/token/validate', 'TokenController@doValidate')->name('token.validate');
 
-// start import thing.
+// start import + config.
 Route::get('/import/start', ['uses' => 'Import\StartController@index', 'as' => 'import.start']);
 Route::post('/import/upload', ['uses' => 'Import\UploadController@upload', 'as' => 'import.upload']);
+
+// show user pub + private key, can be skipped.
+Route::get('/import/keys', ['uses' => 'Import\KeyController@index', 'as' => 'import.keys.index']);
+Route::post('/import/submit', ['uses' => 'Import\KeyController@post', 'as' => 'import.keys.post']);
+
+// list logins (can be skipped)
+Route::get('/import/spectre-logins', ['uses' => 'Import\LoginController@index', 'as' => 'import.list-logins.index']);
+
 
 // clear session
 Route::get('/flush','IndexController@flush')->name('flush');
 
 // routes to go back to other steps (also takes care of session vars)
 Route::get('/back/start', 'NavController@toStart')->name('back.start');
+Route::get('/back/upload', 'NavController@toUpload')->name('back.upload');
+Route::get('/back/upload', 'NavController@toPublicKey')->name('back.public-key');

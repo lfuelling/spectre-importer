@@ -1,6 +1,6 @@
 <?php
 /**
- * StartController.php
+ * NavController.php
  * Copyright (c) 2020 james@firefly-iii.org
  *
  * This file is part of the Firefly III Spectre importer
@@ -22,38 +22,33 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Import;
+namespace App\Http\Controllers;
 
 
-use App\Http\Controllers\Controller;
-use App\Http\Middleware\UploadedFiles;
-use Illuminate\Contracts\View\Factory;
-use Illuminate\View\View;
+use App\Services\Session\Constants;
 
 /**
- * Class StartController
+ * Class NavController
  */
-class StartController extends Controller
+class NavController extends Controller
 {
     /**
-     * StartController constructor.
+     * Redirect to index. Requires no special steps or middleware.
      */
-    public function __construct()
+    public function toStart()
     {
-        parent::__construct();
-        $this->middleware(UploadedFiles::class);
+        return redirect(route('index'));
+
     }
 
     /**
-     * @return Factory|View
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
-    public function index()
+    public function toUpload()
     {
-        $mainTitle = 'Import routine';
-        $subTitle  = 'Start page and instructions';
+        session()->forget(Constants::HAS_UPLOAD);
 
-        return view('import.start.index', compact('mainTitle', 'subTitle'));
+        return redirect(route('import.start'));
     }
-
 
 }

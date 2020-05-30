@@ -26,7 +26,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Import;
 
 use App\Http\Controllers\Controller;
+use App\Services\Configuration\Configuration;
 use App\Services\Local\VerifyKeyMaterial;
+use App\Services\Session\Constants;
+use App\Services\Storage\StorageService;
+use Illuminate\Http\Request;
+use JsonException;
+use Log;
 
 /**
  * Class KeyController
@@ -45,7 +51,37 @@ class KeyController extends Controller
         $mainTitle = 'Key material';
         $subTitle  = 'Required for security';
 
-        return view('import.start.index', compact('publicKey', 'mainTitle', 'subTitle'));
+        return view('import.key.index', compact('publicKey', 'mainTitle', 'subTitle'));
+    }
+
+    /**
+     * @param Request $request
+     */
+    public function post(Request $request)
+    {
+        // skip next time?
+        $configuration = Configuration::fromArray([]);
+        if (session()->has(Constants::CONFIGURATION)) {
+            $configuration = Configuration::fromArray(session()->get(Constants::CONFIGURATION));
+        }
+        $configuration->setSkipKey(false);
+        if ('1' === $request->get('skip_key')) {
+            $configuration->setSkipKey(true);
+        }
+
+        // save config
+        $json          = '[]';
+        try {
+            $json = json_encode($configuration, JSON_THROW_ON_ERROR, 512);
+        } catch (JsonException $e) {
+            Log::error($e->getMessage());
+        }
+        StorageService::storeContent($json);
+
+        session()->put(Constants::CONFIGURATION, $configuration->toArray());
+
+        // redirect to list of logins:
+        return redirect(route('import.list-logins.index'));
     }
 
 }

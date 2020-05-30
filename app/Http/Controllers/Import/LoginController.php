@@ -1,6 +1,6 @@
 <?php
 /**
- * StartController.php
+ * LoginController.php
  * Copyright (c) 2020 james@firefly-iii.org
  *
  * This file is part of the Firefly III Spectre importer
@@ -26,34 +26,21 @@ namespace App\Http\Controllers\Import;
 
 
 use App\Http\Controllers\Controller;
-use App\Http\Middleware\UploadedFiles;
-use Illuminate\Contracts\View\Factory;
-use Illuminate\View\View;
 
 /**
- * Class StartController
+ * Class LoginController
  */
-class StartController extends Controller
+class LoginController extends Controller
 {
     /**
-     * StartController constructor.
-     */
-    public function __construct()
-    {
-        parent::__construct();
-        $this->middleware(UploadedFiles::class);
-    }
-
-    /**
-     * @return Factory|View
+     *
      */
     public function index()
     {
-        $mainTitle = 'Import routine';
-        $subTitle  = 'Start page and instructions';
+        $mainTitle = 'Spectre';
+        $subTitle  = 'Select your financial organisation';
 
-        return view('import.start.index', compact('mainTitle', 'subTitle'));
+        return view('import.login.index', compact('mainTitle','subTitle'));
     }
-
 
 }

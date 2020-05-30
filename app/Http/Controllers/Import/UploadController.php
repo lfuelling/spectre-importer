@@ -47,6 +47,7 @@ namespace App\Http\Controllers\Import;
 
 use App\Exceptions\ImportException;
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\UploadedFiles;
 use App\Services\Configuration\ConfigFileProcessor;
 use App\Services\Session\Constants;
 use App\Services\Storage\StorageService;
@@ -68,8 +69,7 @@ class UploadController extends Controller
     public function __construct()
     {
         parent::__construct();
-        // TODO middleware
-        //$this->middleware(UploadedFiles::class);
+        $this->middleware(UploadedFiles::class);
     }
 
     /**
@@ -106,29 +106,13 @@ class UploadController extends Controller
                 }
             }
         }
-        // if no uploaded config file, read and use the submitted existing file, if any.
-        $existingFile = (string)$request->get('existing_config');
-
-        if (null === $configFile && '' !== $existingFile) {
-            Log::debug('User selected a config file from the store.');
-            $disk = Storage::disk('configurations');
-            $configFileName = StorageService::storeContent($disk->get($existingFile));
-
-            session()->put(Constants::UPLOAD_CONFIG_FILE, $configFileName);
-
-            // process the config file
-            try {
-                $configuration = ConfigFileProcessor::convertConfigFile($configFileName);
-                session()->put(Constants::CONFIGURATION, $configuration->toArray());
-            } catch (ImportException $e) {
-                $errors->add('config_file', $e->getMessage());
-            }
-        }
 
         if ($errors->count() > 0) {
             return redirect(route('import.start'))->withErrors($errors);
         }
+        // user has uploaded (or not) a config file:
+        session()->put(Constants::HAS_UPLOAD, 'true');
 
-        return redirect(route('import.configure.index'));
+        return redirect(route('import.keys.index'));
     }
 }
