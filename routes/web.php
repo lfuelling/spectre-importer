@@ -39,8 +39,8 @@ Route::get('/import/keys', ['uses' => 'Import\KeyController@index', 'as' => 'imp
 Route::post('/import/submit', ['uses' => 'Import\KeyController@post', 'as' => 'import.keys.post']);
 
 // list logins (can be skipped)
-Route::get('/import/spectre-logins', ['uses' => 'Import\LoginController@index', 'as' => 'import.list-logins.index']);
-
+Route::get('/import/spectre-connections', ['uses' => 'Import\ConnectionController@index', 'as' => 'import.connections.index']);
+Route::post('/import/spectre-connections/submit', ['uses' => 'Import\ConnectionController@post', 'as' => 'import.connections.post']);
 
 // clear session
 Route::get('/flush','IndexController@flush')->name('flush');
@@ -48,4 +48,4 @@ Route::get('/flush','IndexController@flush')->name('flush');
 // routes to go back to other steps (also takes care of session vars)
 Route::get('/back/start', 'NavController@toStart')->name('back.start');
 Route::get('/back/upload', 'NavController@toUpload')->name('back.upload');
-Route::get('/back/upload', 'NavController@toPublicKey')->name('back.public-key');
+Route::get('/back/public-keys', 'NavController@toPublicKey')->name('back.public-key');

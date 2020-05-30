@@ -25,19 +25,26 @@ declare(strict_types=1);
 
 namespace App\Services\Spectre\Request;
 
+use App\Exceptions\ImportException;
 use App\Exceptions\SpectreErrorException;
 use App\Exceptions\SpectreHttpException;
+use App\Services\Local\VerifyKeyMaterial;
 use App\Services\Spectre\Response\Response;
+use Exception;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\TransferException;
 use JsonException;
 use Log;
+use RuntimeException;
 
 /**
  * Class Request
  */
 abstract class Request
 {
+    /** @var int */
+    protected $expiresAt = 0;
     /** @var string */
     private $base;
     /** @var array */
@@ -106,6 +113,7 @@ abstract class Request
      */
     public function setParameters(array $parameters): void
     {
+        Log::debug('setParameters', $parameters);
         $this->parameters = $parameters;
     }
 
@@ -147,6 +155,7 @@ abstract class Request
     protected function authenticatedGet(): array
     {
         $fullUri = sprintf('%s/%s', $this->getBase(), $this->getUri());
+
         if (null !== $this->parameters) {
             $fullUri = sprintf('%s?%s', $fullUri, http_build_query($this->parameters));
         }
@@ -213,6 +222,142 @@ abstract class Request
     }
 
     /**
+     * @param array  $data
+     *
+     * @throws ImportException
+     * @return array
+     *
+     */
+    protected function sendSignedSpectrePost(array $data): array
+    {
+        if ('' === $this->uri) {
+            throw new ImportException('No Spectre server defined');
+        }
+        $fullUri = sprintf('%s/%s', $this->getBase(), $this->getUri());
+        $headers = $this->getDefaultHeaders();
+        try {
+            $body = json_encode($data, JSON_THROW_ON_ERROR);
+        } catch (JsonException $e) {
+            throw new ImportException($e->getMessage());
+        }
+
+        // post customer needs no signature, apparantly.
+        $signature            = $this->generateSignature('post', $fullUri, $body);
+        $headers['Signature'] = $signature;
+
+        Log::debug('Final headers for spectre signed POST request:', $headers);
+        try {
+            $client = new Client;
+            $res    = $client->request('POST', $fullUri, ['headers' => $headers, 'body' => $body]);
+        } catch (GuzzleException|Exception $e) {
+            throw new ImportException(sprintf('Guzzle Exception: %s', $e->getMessage()));
+        }
+
+        try {
+            $body = $res->getBody()->getContents();
+        } catch (RuntimeException $e) {
+            Log::error(sprintf('Could not get body from SpectreRequest::POST result: %s', $e->getMessage()));
+            $body = '{}';
+        }
+
+        $statusCode      = $res->getStatusCode();
+        $responseHeaders = $res->getHeaders();
+
+
+        try {
+            $json = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException $e) {
+            throw new ImportException($e->getMessage());
+        }
+        $json['ResponseHeaders']    = $responseHeaders;
+        $json['ResponseStatusCode'] = $statusCode;
+
+        return $json;
+    }
+
+    /**
+     * @param array  $data
+     *
+     * @throws ImportException
+     * @return array
+     *
+     */
+    protected function sendUnsignedSpectrePost(array $data): array
+    {
+        if ('' === $this->uri) {
+            throw new ImportException('No Spectre server defined');
+        }
+        $fullUri = sprintf('%s/%s', $this->getBase(), $this->getUri());
+        $headers = $this->getDefaultHeaders();
+        try {
+            $body = json_encode($data, JSON_THROW_ON_ERROR);
+        } catch (JsonException $e) {
+            throw new ImportException($e->getMessage());
+        }
+
+        Log::debug('Final headers for spectre UNsigned POST request:', $headers);
+        try {
+            $client = new Client;
+            $res    = $client->request('POST', $fullUri, ['headers' => $headers, 'body' => $body]);
+        } catch (GuzzleException|Exception $e) {
+            throw new ImportException(sprintf('Guzzle Exception: %s', $e->getMessage()));
+        }
+
+        try {
+            $body = $res->getBody()->getContents();
+        } catch (RuntimeException $e) {
+            Log::error(sprintf('Could not get body from SpectreRequest::POST result: %s', $e->getMessage()));
+            $body = '{}';
+        }
+
+        $statusCode      = $res->getStatusCode();
+        $responseHeaders = $res->getHeaders();
+
+
+        try {
+            $json = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException $e) {
+            throw new ImportException($e->getMessage());
+        }
+        $json['ResponseHeaders']    = $responseHeaders;
+        $json['ResponseStatusCode'] = $statusCode;
+
+        return $json;
+    }
+
+    /**
+     * @param string $method
+     * @param string $uri
+     * @param string $data
+     *
+     * @throws ImportException
+     * @return string
+     *
+     */
+    protected function generateSignature(string $method, string $uri, string $data): string
+    {
+        $privateKey = VerifyKeyMaterial::getPrivateKey();
+        $publicKey = VerifyKeyMaterial::getPublicKey();
+
+        Log::debug('Going to sign with private key associated with:');
+        Log::debug($publicKey);
+
+        $method     = strtolower($method);
+        if ('get' === $method || 'delete' === $method) {
+            $data = '';
+        }
+        $toSign = $this->expiresAt . '|' . strtoupper($method) . '|' . $uri . '|' . $data . ''; // no file so no content there.
+        Log::debug(sprintf('String to sign: "%s"', $toSign));
+        $signature = '';
+
+        // Sign the data
+        openssl_sign($toSign, $signature, $privateKey, OPENSSL_ALGO_SHA256);
+        $signature = base64_encode($signature);
+
+        return $signature;
+    }
+
+    /**
      * @throws SpectreHttpException
      * @return Response
      */
@@ -232,5 +377,24 @@ abstract class Request
         // config here
 
         return new Client;
+    }
+
+    /**
+     * @return array
+     */
+    protected function getDefaultHeaders(): array
+    {
+        $userAgent       = sprintf('FireflyIII Spectre v%s', config('spectre.version'));
+        $this->expiresAt = time() + 180;
+
+        return [
+            'App-id'        => $this->getAppId(),
+            'Secret'        => $this->getSecret(),
+            'Accept'        => 'application/json',
+            'Content-type'  => 'application/json',
+            'Cache-Control' => 'no-cache',
+            'User-Agent'    => $userAgent,
+            'Expires-at'    => $this->expiresAt,
+        ];
     }
 }

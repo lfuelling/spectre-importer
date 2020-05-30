@@ -48,6 +48,7 @@ class KeyController extends Controller
         VerifyKeyMaterial::verifyOrCreate();
         $publicKey = VerifyKeyMaterial::getPublicKey();
 
+        // list customers. Create new one if necessary.
         $mainTitle = 'Key material';
         $subTitle  = 'Required for security';
 
@@ -70,7 +71,7 @@ class KeyController extends Controller
         }
 
         // save config
-        $json          = '[]';
+        $json = '[]';
         try {
             $json = json_encode($configuration, JSON_THROW_ON_ERROR, 512);
         } catch (JsonException $e) {
@@ -81,7 +82,7 @@ class KeyController extends Controller
         session()->put(Constants::CONFIGURATION, $configuration->toArray());
 
         // redirect to list of logins:
-        return redirect(route('import.list-logins.index'));
+        return redirect(route('import.connections.index'));
     }
 
 }

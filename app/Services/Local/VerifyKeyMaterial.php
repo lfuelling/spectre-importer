@@ -46,6 +46,7 @@ class VerifyKeyMaterial
         $storage    = Storage::disk('keys');
         if ($storage->has($publicKey) && $storage->has($privateKey)) {
             Log::info('Firefly III Spectre importer has correct key material.');
+            return;
         }
 
         Log::info('Firefly III Spectre importer could not find key material. Will create new key material.');
@@ -75,13 +76,31 @@ class VerifyKeyMaterial
      * @throws ImportException
      * @return string
      */
-    public static function getPublicKey(): string {
-        $publicKeyName  = 'spectre_public.key';
-        $storage    = Storage::disk('keys');
+    public static function getPublicKey(): string
+    {
+        $publicKeyName = 'spectre_public.key';
+        $storage       = Storage::disk('keys');
         if ($storage->has($publicKeyName)) {
             Log::info('Firefly III Spectre importer has a public key.');
+
             return $storage->get($publicKeyName);
         }
         throw new ImportException('No public key found.');
+    }
+
+    /**
+     * @throws ImportException
+     * @return string
+     */
+    public static function getPrivateKey(): string
+    {
+        $privateKeyName = 'spectre_private.key';;
+        $storage = Storage::disk('keys');
+        if ($storage->has($privateKeyName)) {
+            Log::info('Firefly III Spectre importer has a private key.');
+
+            return $storage->get($privateKeyName);
+        }
+        throw new ImportException('No private key found.');
     }
 }

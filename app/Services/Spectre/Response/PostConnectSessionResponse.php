@@ -1,6 +1,6 @@
 <?php
 /**
- * LoginController.php
+ * PostConnectSessionResponse.php
  * Copyright (c) 2020 james@firefly-iii.org
  *
  * This file is part of the Firefly III Spectre importer
@@ -22,25 +22,21 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Import;
+namespace App\Services\Spectre\Response;
 
-
-use App\Http\Controllers\Controller;
 
 /**
- * Class LoginController
+ * Class PostConnectSessionResponse
  */
-class LoginController extends Controller
+class PostConnectSessionResponse extends Response
 {
+
     /**
-     *
+     * @inheritDoc
      */
-    public function index()
+    public function __construct(array $data)
     {
-        $mainTitle = 'Spectre';
-        $subTitle  = 'Select your financial organisation';
-
-        return view('import.login.index', compact('mainTitle','subTitle'));
+        var_dump($data);
+        exit;
     }
-
 }
