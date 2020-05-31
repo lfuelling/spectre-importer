@@ -27,14 +27,19 @@ namespace App\Http\Controllers\Import;
 
 use App\Exceptions\ImportException;
 use App\Http\Controllers\Controller;
+use App\Services\Configuration\Configuration;
+use App\Services\Session\Constants;
 use App\Services\Spectre\Model\Customer;
 use App\Services\Spectre\Request\ListConnectionsRequest;
 use App\Services\Spectre\Request\ListCustomersRequest;
 use App\Services\Spectre\Request\PostConnectSessionsRequest;
 use App\Services\Spectre\Request\PostCustomerRequest;
 use App\Services\Spectre\Response\ErrorResponse;
+use App\Services\Spectre\Response\PostConnectSessionResponse;
 use App\Services\Spectre\Response\PostCustomerResponse;
+use App\Services\Storage\StorageService;
 use Illuminate\Http\Request;
+use JsonException;
 use Log;
 
 /**
@@ -77,8 +82,27 @@ class ConnectionController extends Controller
             /** @var PostCustomerResponse $customer */
             $customer   = $request->post();
             $identifier = $customer->customer->id;
-
         }
+
+        // store identifier in config
+        // skip next time?
+        $configuration = Configuration::fromArray([]);
+        if (session()->has(Constants::CONFIGURATION)) {
+            $configuration = Configuration::fromArray(session()->get(Constants::CONFIGURATION));
+        }
+        $configuration->setIdentifier((int) $identifier);
+
+        // save config
+        $json = '[]';
+        try {
+            $json = json_encode($configuration, JSON_THROW_ON_ERROR, 512);
+        } catch (JsonException $e) {
+            Log::error($e->getMessage());
+        }
+        StorageService::storeContent($json);
+
+        session()->put(Constants::CONFIGURATION, $configuration->toArray());
+
         Log::debug('About to get connections.');
         $request           = new ListConnectionsRequest($uri, $appId, $secret);
         $request->customer = (string) $identifier;
@@ -88,7 +112,7 @@ class ConnectionController extends Controller
             throw new ImportException(sprintf('%s: %s', $list->class, $list->message));
         }
 
-        return view('import.connection.index', compact('mainTitle', 'subTitle', 'list'));
+        return view('import.connection.index', compact('mainTitle', 'subTitle', 'list', 'identifier'));
     }
 
     /**
@@ -98,18 +122,46 @@ class ConnectionController extends Controller
     {
         $connectionId = $request->get('spectre_connection_id');
         if ('00' === $connectionId) {
+            // get identifier
+            $configuration = Configuration::fromArray([]);
+            if (session()->has(Constants::CONFIGURATION)) {
+                $configuration = Configuration::fromArray(session()->get(Constants::CONFIGURATION));
+            }
+
             // make a new connection.
-            // post to https://www.saltedge.com/api/v5/connect_sessions/create
-            $uri      = config('spectre.spectre_uri');
-            $appId    = config('spectre.spectre_app_id');
-            $secret   = config('spectre.spectre_secret');
-            $newToken = new PostConnectSessionsRequest($uri, $appId, $secret);
-            $newToken->post();
-            echo '1234';
-            exit;
+            $uri                = config('spectre.spectre_uri');
+            $appId              = config('spectre.spectre_app_id');
+            $secret             = config('spectre.spectre_secret');
+            $newToken           = new PostConnectSessionsRequest($uri, $appId, $secret);
+            $newToken->customer = $configuration->getIdentifier();
+            $newToken->uri      = route('import.callback.index');
+            /** @var PostConnectSessionResponse $result */
+            $result             = $newToken->post();
+            return redirect($result->connect_url);
         }
-        var_dump($request->all());
-        exit;
+
+        // store connection in config, go to fancy JS page.
+        // store identifier in config
+        // skip next time?
+        $configuration = Configuration::fromArray([]);
+        if (session()->has(Constants::CONFIGURATION)) {
+            $configuration = Configuration::fromArray(session()->get(Constants::CONFIGURATION));
+        }
+        $configuration->setConnection((int) $connectionId);
+
+        // save config
+        $json = '[]';
+        try {
+            $json = json_encode($configuration, JSON_THROW_ON_ERROR, 512);
+        } catch (JsonException $e) {
+            Log::error($e->getMessage());
+        }
+        StorageService::storeContent($json);
+
+        session()->put(Constants::CONFIGURATION, $configuration->toArray());
+
+        // redirect
+        return redirect(route('import.download.index'));
 
     }
 

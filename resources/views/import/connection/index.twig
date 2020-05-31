@@ -30,9 +30,6 @@
             <!-- list all connections -->
             <div class="row">
                 <div class="col-lg-12">
-                    {% for item in list %}
-                        {{ dump(item) }}
-                    {% endfor %}
                     <table class="table table-bordered table-striped">
                         <thead>
                         <tr>
@@ -47,27 +44,27 @@
                             <tr>
                                 <td>
                                     <input
-                                            {% if login.getStatus() == 'disabled' %}disabled{% endif %}
+                                            {% if item.status == 'disabled' %}disabled{% endif %}
 
-                                            id="{{ login.getId() }}" type="radio" name="spectre_connection_id" value="{{ login.getId() }}">
+                                            id="{{ item.id }}" type="radio" {% if list|length == 1%}checked{% endif%} name="spectre_connection_id" value="{{ item.id }}">
                                 </td>
                                 <td>
-                                    <label for="{{ login.getId() }}">
-                                        {{ login.getProviderName() }} ({{ login.getCountryCode() }})
+                                    <label for="{{ item.id }}">
+                                        {{ item.providerName }} ({{ item.countryCode }})
                                     </label>
                                 </td>
                                 <td>
-                                    {{ login.getLastSuccessAt().formatLocalized(monthAndDayFormat) }}<br>
-                                    {{ login.getUpdatedAt().format("Y-m-d H:i:s") }}<br>
+                                    {{ item.lastSuccess.format("Y-m-d H:i:s") }}<br>
+                                    {{ item.updatedAt.format("Y-m-d H:i:s") }}<br>
                                 </td>
                                 <td>
-                                    {{ trans('import.spectre_login_status_'~login.getStatus()) }}
+                                    {{ item.status }}
                                 </td>
                             </tr>
                         {% endfor %}
                         <tr>
                             <td>
-                                <input id="new_login" type="radio" name="spectre_connection_id" value="00" {% if list.length == 0 %}checked{% endif %}>
+                                <input id="new_login" type="radio" name="spectre_connection_id" value="00" {% if list|length == 0 %}checked{% endif %}>
                             </td>
                             <td colspan="3">
                                 <label for="new_login"><em>

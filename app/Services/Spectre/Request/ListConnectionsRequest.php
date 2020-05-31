@@ -27,6 +27,7 @@ namespace App\Services\Spectre\Request;
 
 use App\Exceptions\SpectreErrorException;
 use App\Services\Spectre\Response\ErrorResponse;
+use App\Services\Spectre\Response\ListConnectionsResponse;
 use App\Services\Spectre\Response\ListCustomersResponse;
 use App\Services\Spectre\Response\Response;
 use JsonException;
@@ -75,7 +76,7 @@ class ListConnectionsRequest extends Request
             return new ErrorResponse($e->json ?? []);
         }
 
-        return new ListCustomersResponse($response['data']);
+        return new ListConnectionsResponse($response['data']);
     }
 
     /**

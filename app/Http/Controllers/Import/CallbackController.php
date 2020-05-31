@@ -1,6 +1,6 @@
 <?php
 /**
- * PostConnectSessionResponse.php
+ * CallbackController.php
  * Copyright (c) 2020 james@firefly-iii.org
  *
  * This file is part of the Firefly III Spectre importer
@@ -22,23 +22,25 @@
 
 declare(strict_types=1);
 
-namespace App\Services\Spectre\Response;
+namespace App\Http\Controllers\Import;
 
+
+use App\Http\Controllers\Controller;
 
 /**
- * Class PostConnectSessionResponse
+ * Class CallbackController
  */
-class PostConnectSessionResponse extends Response
+class CallbackController extends Controller
 {
-
-    /** @var string  */
-    public string $connect_url;
-
     /**
-     * @inheritDoc
+     *
      */
-    public function __construct(array $data)
+    public function index()
     {
-        $this->connect_url = (string) $data['connect_url'];
+        // get all the connections the user has.
+        // since this is a callback, we expect there just to be one.
+        // could still be multiple. Offer choice again?
+        return redirect(route('import.connections.index'));
     }
+
 }

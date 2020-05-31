@@ -289,17 +289,23 @@ abstract class Request
         }
         $fullUri = sprintf('%s/%s', $this->getBase(), $this->getUri());
         $headers = $this->getDefaultHeaders();
+        $opts    = ['headers' => $headers];
+        $body    = null;
         try {
             $body = json_encode($data, JSON_THROW_ON_ERROR);
         } catch (JsonException $e) {
-            throw new ImportException($e->getMessage());
+            Log::error($e->getMessage());
+        }
+        if ('{}' !== (string) $body) {
+            $opts['body'] = $body;
         }
 
         Log::debug('Final headers for spectre UNsigned POST request:', $headers);
         try {
             $client = new Client;
-            $res    = $client->request('POST', $fullUri, ['headers' => $headers, 'body' => $body]);
+            $res    = $client->request('POST', $fullUri, $opts);
         } catch (GuzzleException|Exception $e) {
+            Log::error($e->getMessage());
             throw new ImportException(sprintf('Guzzle Exception: %s', $e->getMessage()));
         }
 

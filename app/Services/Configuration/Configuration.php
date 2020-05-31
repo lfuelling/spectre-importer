@@ -70,6 +70,9 @@ class Configuration
     /** @var int */
     private $version;
 
+    private int $connection;
+    private int $identifier;
+
     /**
      * Configuration constructor.
      */
@@ -83,6 +86,8 @@ class Configuration
         $this->mapping                     = [];
         $this->doMapping                   = [];
         $this->version                     = self::VERSION;
+        $this->identifier                  = 0;
+        $this->connection                  = 0;
     }
 
     /**
@@ -101,6 +106,8 @@ class Configuration
         $object->addImportTag                = $array['add_import_tag'] ?? true;
         $object->mapping                     = $array['mapping'] ?? [];
         $object->doMapping                   = $array['do_mapping'] ?? [];
+        $object->identifier                  = $array['identifier'] ?? 0;
+        $object->connection                  = $array['connection'] ?? 0;
         $object->version                     = $version;
 
         return $object;
@@ -135,6 +142,8 @@ class Configuration
         $object->addImportTag                = $array['add_import_tag'] ?? true;
         $object->mapping                     = $array['mapping'];
         $object->doMapping                   = $array['do_mapping'];
+        $object->identifier                  = $array['identifier'] ?? 0;
+        $object->connection                  = $array['connection'] ?? 0;
 
         return $object;
     }
@@ -229,6 +238,38 @@ class Configuration
     }
 
     /**
+     * @param int $identifier
+     */
+    public function setIdentifier(int $identifier): void
+    {
+        $this->identifier = $identifier;
+    }
+
+    /**
+     * @return int
+     */
+    public function getIdentifier(): int
+    {
+        return $this->identifier;
+    }
+
+    /**
+     * @return int
+     */
+    public function getConnection(): int
+    {
+        return $this->connection;
+    }
+
+    /**
+     * @param int $connection
+     */
+    public function setConnection(int $connection): void
+    {
+        $this->connection = $connection;
+    }
+
+    /**
      * @return array
      */
     public function toArray(): array
@@ -241,7 +282,10 @@ class Configuration
             'add_import_tag'                => $this->addImportTag,
             'do_mapping'                    => $this->doMapping,
             'mapping'                       => $this->mapping,
+            'identifier'                    => $this->identifier,
+            'connection'                    => $this->connection,
             'version'                       => $this->version,
+
         ];
     }
 

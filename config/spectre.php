@@ -32,4 +32,5 @@ return [
     'spectre_app_id'  => env('SPECTRE_APP_ID', ''),
     'spectre_secret'  => env('SPECTRE_SECRET', ''),
     'spectre_uri'     => 'https://www.saltedge.com/api/v5',
+    'skip_key_step'   => false,
 ];

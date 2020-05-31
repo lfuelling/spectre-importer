@@ -38,9 +38,15 @@ Route::post('/import/upload', ['uses' => 'Import\UploadController@upload', 'as' 
 Route::get('/import/keys', ['uses' => 'Import\KeyController@index', 'as' => 'import.keys.index']);
 Route::post('/import/submit', ['uses' => 'Import\KeyController@post', 'as' => 'import.keys.post']);
 
-// list logins (can be skipped)
+// list tokens (can be skipped)
 Route::get('/import/spectre-connections', ['uses' => 'Import\ConnectionController@index', 'as' => 'import.connections.index']);
 Route::post('/import/spectre-connections/submit', ['uses' => 'Import\ConnectionController@post', 'as' => 'import.connections.post']);
+
+// once a connection has been made using a token (from previous step), pick up using callback:
+Route::get('/import/callback', ['uses' => 'Import\CallbackController@index', 'as' => 'import.callback.index']);
+
+// download from Spectre
+Route::get('/import/download/index', ['uses' => 'Import\DownloadController@index', 'as' => 'import.download.index']);
 
 // clear session
 Route::get('/flush','IndexController@flush')->name('flush');
