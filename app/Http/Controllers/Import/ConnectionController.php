@@ -160,8 +160,8 @@ class ConnectionController extends Controller
 
         session()->put(Constants::CONFIGURATION, $configuration->toArray());
 
-        // redirect
-        return redirect(route('import.download.index'));
+        // redirect to job configuration
+        return redirect(route('import.configuration.index'));
 
     }
 

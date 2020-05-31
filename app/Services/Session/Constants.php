@@ -63,6 +63,9 @@ class Constants
     public const ROLES_COMPLETE_INDICATOR = 'role_config_complete';
 
     /** @var string */
+    public const DOWNLOAD_JOB_IDENTIFIER = 'download_job_id';
+
+    /** @var string */
     public const MAPPING_COMPLETE_INDICATOR = 'mapping_config_complete';
 
     /** @var string */
