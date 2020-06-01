@@ -1,6 +1,6 @@
 <?php
 /**
- * ListConnectionsResponse.php
+ * GetTransactionsResponse.php
  * Copyright (c) 2020 james@firefly-iii.org
  *
  * This file is part of the Firefly III Spectre importer
@@ -22,23 +22,20 @@
 
 declare(strict_types=1);
 
-
 namespace App\Services\Spectre\Response;
 
-use App\Services\Spectre\Model\Connection;
+use App\Services\Spectre\Model\Transaction;
 use Countable;
 use Illuminate\Support\Collection;
 use Iterator;
 
 /**
- * Class ListConnectionsResponse
+ * Class GetTransactionsResponse
  */
-class ListConnectionsResponse extends Response implements Iterator, Countable
+class GetTransactionsResponse extends Response implements Iterator, Countable
 {
-    /** @var Collection */
-    private $collection;
-    /** @var int */
-    private $position = 0;
+    private Collection $collection;
+    private int        $position = 0;
 
     /**
      * @inheritDoc
@@ -46,13 +43,11 @@ class ListConnectionsResponse extends Response implements Iterator, Countable
     public function __construct(array $data)
     {
         $this->collection = new Collection;
-        /** @var array $row */
-        foreach ($data as $row) {
-            $model = Connection::fromArray($row);
+        foreach ($data as $array) {
+            $model = Transaction::fromArray($array);
             $this->collection->push($model);
         }
     }
-
 
     /**
      * Count elements of an object.
@@ -73,10 +68,10 @@ class ListConnectionsResponse extends Response implements Iterator, Countable
      * Return the current element.
      *
      * @link  https://php.net/manual/en/iterator.current.php
-     * @return Connection
+     * @return Transaction
      * @since 5.0.0
      */
-    public function current(): Connection
+    public function current(): Transaction
     {
         return $this->collection->get($this->position);
     }
@@ -115,6 +110,20 @@ class ListConnectionsResponse extends Response implements Iterator, Countable
     public function rewind(): void
     {
         $this->position = 0;
+    }
+
+    /**
+     * @return array
+     */
+    public function toArray(): array
+    {
+        $return = [];
+        /** @var Transaction $transaction */
+        foreach ($this->collection as $transaction) {
+            $return[] = $transaction->toArray();
+        }
+
+        return $return;
     }
 
     /**

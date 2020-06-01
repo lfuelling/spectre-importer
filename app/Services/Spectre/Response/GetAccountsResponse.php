@@ -1,6 +1,6 @@
 <?php
 /**
- * ListConnectionsResponse.php
+ * GetAccountsResponse.php
  * Copyright (c) 2020 james@firefly-iii.org
  *
  * This file is part of the Firefly III Spectre importer
@@ -22,23 +22,22 @@
 
 declare(strict_types=1);
 
-
 namespace App\Services\Spectre\Response;
 
-use App\Services\Spectre\Model\Connection;
+use App\Services\Spectre\Model\Account;
 use Countable;
 use Illuminate\Support\Collection;
 use Iterator;
 
 /**
- * Class ListConnectionsResponse
+ * Class GetAccountsResponse
  */
-class ListConnectionsResponse extends Response implements Iterator, Countable
+class GetAccountsResponse extends Response implements Iterator, Countable
 {
     /** @var Collection */
-    private $collection;
+    private Collection $collection;
     /** @var int */
-    private $position = 0;
+    private int $position = 0;
 
     /**
      * @inheritDoc
@@ -46,9 +45,8 @@ class ListConnectionsResponse extends Response implements Iterator, Countable
     public function __construct(array $data)
     {
         $this->collection = new Collection;
-        /** @var array $row */
-        foreach ($data as $row) {
-            $model = Connection::fromArray($row);
+        foreach ($data as $entry) {
+            $model = Account::fromArray($entry);
             $this->collection->push($model);
         }
     }
@@ -73,10 +71,10 @@ class ListConnectionsResponse extends Response implements Iterator, Countable
      * Return the current element.
      *
      * @link  https://php.net/manual/en/iterator.current.php
-     * @return Connection
+     * @return Account
      * @since 5.0.0
      */
-    public function current(): Connection
+    public function current(): Account
     {
         return $this->collection->get($this->position);
     }

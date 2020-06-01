@@ -26,9 +26,15 @@ namespace App\Http\Controllers\Import;
 
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ConfigurationPostRequest;
 use App\Services\Configuration\Configuration;
 use App\Services\Session\Constants;
+use App\Services\Spectre\Model\Account;
+use App\Services\Spectre\Request\GetAccountsRequest as SpectreGetAccountsRequest;
+use App\Services\Storage\StorageService;
+use GrumpyDictator\FFIIIApiSupport\Request\GetAccountsRequest;
 use Illuminate\Contracts\Routing\ResponseFactory;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use JsonException;
 use Log;
@@ -38,6 +44,113 @@ use Log;
  */
 class ConfigurationController extends Controller
 {
+
+    /**
+     * @param Request $request
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function index(Request $request)
+    {
+        app('log')->debug(sprintf('Now at %s', __METHOD__));
+        $mainTitle = 'Import from Spectre';
+        $subTitle  = 'Configure your Spectre import';
+
+        $configuration = Configuration::fromArray([]);
+        if (session()->has(Constants::CONFIGURATION)) {
+            $configuration = Configuration::fromArray(session()->get(Constants::CONFIGURATION));
+        }
+        // if config says to skip it, skip it:
+        $overruleSkip = 'true' === $request->get('overruleskip');
+        if (null !== $configuration && true === $configuration->isSkipForm() && false === $overruleSkip) {
+            // skipForm
+            return redirect()->route('import.download.index');
+        }
+
+        // get list of asset accounts in Firefly III
+        $uri         = (string) config('spectre.uri');
+        $token       = (string) config('spectre.access_token');
+        $accountList = new GetAccountsRequest($uri, $token);
+        $accountList->setType(GetAccountsRequest::ASSET);
+        $ff3Accounts = $accountList->get();
+
+        // add Firefly III URI's:
+        /** @var \GrumpyDictator\FFIIIApiSupport\Model\Account $ff3Account */
+        foreach ($ff3Accounts as $ff3Account) {
+            $ff3Account->uri = sprintf('%saccounts/show/%d', config('spectre.uri'), $ff3Account->id);
+        }
+
+        // get the accounts over at Spectre.
+        $uri                     = config('spectre.spectre_uri');
+        $appId                   = config('spectre.spectre_app_id');
+        $secret                  = config('spectre.spectre_secret');
+        $spectreList             = new SpectreGetAccountsRequest($uri, $appId, $secret);
+        $spectreList->connection = $configuration->getConnection();
+        $spectreAccountList      = $spectreList->get();
+
+        /** @var Account $spectreAccount */
+        foreach ($spectreAccountList as $spectreAccount) {
+            /** @var \GrumpyDictator\FFIIIApiSupport\Model\Account $ff3Account */
+            foreach ($ff3Accounts as $ff3Account) {
+                if ($spectreAccount->iban === $ff3Account->iban) {
+                    $spectreAccount->matched = true;
+                }
+            }
+        }
+
+        // view for config:
+        return view('import.configuration.index', compact('ff3Accounts', 'spectreAccountList', 'configuration', 'mainTitle', 'subTitle'));
+    }
+
+    /**
+     * @param Request $request
+     */
+    public function post(ConfigurationPostRequest $request)
+    {
+        app('log')->debug(sprintf('Now at %s', __METHOD__));
+
+        // get config from request
+        $fromRequest = $request->getAll();
+
+        // get config from session
+        $configuration = Configuration::fromArray([]);
+        if (session()->has(Constants::CONFIGURATION)) {
+            $configuration = Configuration::fromArray(session()->get(Constants::CONFIGURATION));
+        }
+
+        // update config
+        $configuration->setRules($fromRequest['rules']);
+        $configuration->setSkipForm($fromRequest['skip_form']);
+        if (null !== $fromRequest['date_not_after']) {
+            $configuration->setDateNotAfter($fromRequest['date_not_after']->format('Y-m-d'));
+        }
+        if (null !== $fromRequest['date_not_before']) {
+            $configuration->setDateNotBefore($fromRequest['date_not_before']->format('Y-m-d'));
+        }
+        $configuration->setDateRangeNumber($fromRequest['date_range_number']);
+        $configuration->setDateRangeUnit($fromRequest['date_range_unit']);
+        $configuration->setDateRange($fromRequest['date_range']);
+        $configuration->setDoMapping($fromRequest['do_mapping']);
+
+        // loop accounts:
+        $accounts = [];
+        foreach (array_keys($fromRequest['do_import']) as $accountId) {
+            if (isset($fromRequest['accounts'][$accountId])) {
+                $accounts[$accountId] = (int) $fromRequest['accounts'][$accountId];
+            }
+        }
+        $configuration->setAccounts($accounts);
+        $configuration->updateDateRange();
+
+        session()->put(Constants::CONFIGURATION, $configuration->toArray());
+
+        // set config as complete.
+        session()->put(Constants::CONFIG_COMPLETE_INDICATOR, true);
+
+        // redirect to import things?
+        return redirect()->route('import.download.index');
+    }
+
     /**
      * @return ResponseFactory|Response
      */

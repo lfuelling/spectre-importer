@@ -79,9 +79,9 @@ return [
             'driver' => 'local',
             'root'   => storage_path('downloads'),
         ],
-        'download_jobs' => [
+        'jobs' => [
             'driver' => 'local',
-            'root'   => storage_path('download_jobs'),
+            'root'   => storage_path('jobs'),
         ],
         'public'    => [
             'driver'     => 'local',

@@ -1,6 +1,6 @@
 <?php
 /**
- * ListCustomersRequest.php
+ * GetTransactionsRequest.php
  * Copyright (c) 2020 james@firefly-iii.org
  *
  * This file is part of the Firefly III Spectre importer
@@ -22,27 +22,27 @@
 
 declare(strict_types=1);
 
-
 namespace App\Services\Spectre\Request;
 
-use App\Exceptions\SpectreErrorException;
+
 use App\Exceptions\SpectreHttpException;
-use App\Services\Spectre\Response\ErrorResponse;
-use App\Services\Spectre\Response\ListCustomersResponse;
+use App\Services\Spectre\Response\GetTransactionsResponse;
 use App\Services\Spectre\Response\Response;
-use JsonException;
+use Log;
 
 /**
- * Class ListCustomersRequest
- * TODO is not yet paginated.
+ * Class GetTransactionsRequest
  */
-class ListCustomersRequest extends Request
+class GetTransactionsRequest extends Request
 {
+    public string $accountId;
+    public string $connectionId;
     /**
-     * ListCustomersRequest constructor.
+     * GetTransactionsRequest constructor.
      *
      * @param string $url
-     * @param string $token
+     * @param string $appId
+     * @param string $secret
      */
     public function __construct(string $url, string $appId, string $secret)
     {
@@ -50,22 +50,46 @@ class ListCustomersRequest extends Request
         $this->setBase($url);
         $this->setAppId($appId);
         $this->setSecret($secret);
-        $this->setUri('customers');
+        $this->setUri('transactions');
     }
 
     /**
      * @inheritDoc
-     * @throws JsonException
      */
     public function get(): Response
     {
-        try {
-            $response = $this->authenticatedGet();
-        } catch (SpectreErrorException $e) {
-            // JSON thing.
-            return new ErrorResponse($e->json ?? []);
+        $hasNextPage = true;
+        $nextId      = 0;
+        $transactions = [];
+        while ($hasNextPage) {
+            Log::debug(sprintf('Now calling GetTransactionsRequest for next_id %d', $nextId));
+
+            $this->setParameters(
+                [
+                    'connection_id' => $this->connectionId,
+                    'account_id' => $this->accountId,
+                    'from_id' =>$nextId,
+                ]
+            );
+            $response   = $this->authenticatedGet();
+
+            // count entries:
+            Log::debug(sprintf('Found %d entries in data-array', count($response['data'])));
+
+            // extract next ID
+            $hasNextPage = false;
+            if (isset($response['meta']['next_id']) && (int)$response['meta']['next_id'] > $nextId) {
+                $hasNextPage = true;
+                $nextId      = $response['meta']['next_id'];
+                Log::debug(sprintf('Next ID is now %d.', $nextId));
+            }
+
+            // store customers:
+            foreach ($response['data'] as $transactionArray) {
+                $transactions[] = $transactionArray;
+            }
         }
-        return new ListCustomersResponse($response['data']);
+        return new GetTransactionsResponse($transactions);
     }
 
     /**

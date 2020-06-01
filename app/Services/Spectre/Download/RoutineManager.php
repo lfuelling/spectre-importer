@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace App\Services\Spectre\Download;
 
+use App\Services\Configuration\Configuration;
 use Storage;
 use Str;
 
@@ -33,21 +34,28 @@ use Str;
 class RoutineManager
 {
     private string $downloadIdentifier;
-    private array $allErrors;
-    private array $allMessages;
-    private array $allWarnings;
+    private array  $allErrors;
+    private array  $allMessages;
+    private array  $allWarnings;
+    /** @var string */
+    private const DISKNAME = 'downloads';
+    private Configuration        $configuration;
+    private TransactionProcessor $transactionProcessor;
+
     /**
      * RoutineManager constructor.
      *
      * @param string|null $downloadIdentifier
      */
-    public function __construct(string $downloadIdentifier = null) {
+    public function __construct(string $downloadIdentifier = null)
+    {
         app('log')->debug('Constructed Spectre download routine manager.');
 
         // get line converter
-        $this->allMessages = [];
-        $this->allWarnings = [];
-        $this->allErrors   = [];
+        $this->allMessages          = [];
+        $this->allWarnings          = [];
+        $this->allErrors            = [];
+        $this->transactionProcessor = new TransactionProcessor;
         if (null === $downloadIdentifier) {
             app('log')->debug('Was given no download identifier, will generate one.');
             $this->generateDownloadIdentifier();
@@ -69,10 +77,24 @@ class RoutineManager
     /**
      *
      */
+    public function start(): void
+    {
+
+        // get transactions from Spectre
+        $transactions = $this->transactionProcessor->download();
+
+        // store on drive in downloadIdentifier.
+        $disk = Storage::disk(self::DISKNAME);
+        $disk->put($this->downloadIdentifier, json_encode($transactions, JSON_THROW_ON_ERROR, 512));
+    }
+
+    /**
+     *
+     */
     private function generateDownloadIdentifier(): void
     {
         app('log')->debug('Going to generate download identifier.');
-        $disk  = Storage::disk('download_jobs');
+        $disk  = Storage::disk('jobs');
         $count = 0;
         do {
             $downloadIdentifier = Str::random(16);
@@ -82,4 +104,17 @@ class RoutineManager
         $this->downloadIdentifier = $downloadIdentifier;
         app('log')->info(sprintf('Download job identifier is "%s"', $downloadIdentifier));
     }
+
+    /**
+     * @param Configuration $configuration
+     */
+    public function setConfiguration(Configuration $configuration): void
+    {
+        $this->configuration = $configuration;
+        $this->transactionProcessor->setConfiguration($configuration);
+        $this->transactionProcessor->setDownloadIdentifier($this->downloadIdentifier);
+
+    }
+
+
 }

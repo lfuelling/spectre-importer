@@ -25,9 +25,15 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Import;
 
 
+use App\Exceptions\ImportException;
 use App\Http\Controllers\Controller;
+use App\Services\Configuration\Configuration;
 use App\Services\Session\Constants;
+use App\Services\Spectre\Download\JobStatus\JobStatus;
+use App\Services\Spectre\Download\JobStatus\JobStatusManager;
 use App\Services\Spectre\Download\RoutineManager;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 /**
  * Class DownloadController
@@ -45,9 +51,10 @@ class DownloadController extends Controller
 
     public function index()
     {
+        app('log')->debug(sprintf('Now at %s', __METHOD__));
         $mainTitle = 'Downloading transactions...';
         $subTitle  = 'Connecting to Spectre and downloading your data...';
-        $routine = null;
+        $routine   = null;
         // job ID may be in session:
         $downloadIdentifier = session()->get(Constants::DOWNLOAD_JOB_IDENTIFIER);
         if (null === $downloadIdentifier) {
@@ -55,6 +62,10 @@ class DownloadController extends Controller
             $routine            = new RoutineManager;
             $downloadIdentifier = $routine->getDownloadIdentifier();
         }
+
+        // experimental get config TODO remove me.
+        $config = session()->get(Constants::CONFIGURATION) ?? [];
+        $configuration = Configuration::fromArray($config);
 
         // call thing:
         JobStatusManager::startOrFindJob($downloadIdentifier);
@@ -67,4 +78,62 @@ class DownloadController extends Controller
 
         return view('import.download.index', compact('mainTitle', 'subTitle', 'downloadIdentifier'));
     }
+
+    /**
+     * @param Request $request
+     *
+     * @return JsonResponse
+     */
+    public function status(Request $request): JsonResponse
+    {
+        $downloadIdentifier = $request->get('downloadIdentifier');
+        if (null === $downloadIdentifier) {
+            app('log')->warning('Download Identifier is NULL.');
+            // no status is known yet because no identifier is in the session.
+            // As a fallback, return empty status
+            $fakeStatus = new JobStatus();
+
+            return response()->json($fakeStatus->toArray());
+        }
+        $importJobStatus = JobStatusManager::startOrFindJob($downloadIdentifier);
+
+        return response()->json($importJobStatus->toArray());
+    }
+
+    /**
+     * @param Request $request
+     *
+     * @return JsonResponse
+     */
+    public function start(Request $request): JsonResponse
+    {
+        app('log')->debug(sprintf('Now at %s', __METHOD__));
+        $downloadIdentifier = $request->get('downloadIdentifier');
+        $routine            = new RoutineManager($downloadIdentifier);
+        JobStatusManager::startOrFindJob($downloadIdentifier);
+
+        // store identifier in session so the status can get it.
+        session()->put(Constants::DOWNLOAD_JOB_IDENTIFIER, $downloadIdentifier);
+
+        $downloadJobStatus = JobStatusManager::startOrFindJob($downloadIdentifier);
+        if (JobStatus::JOB_DONE === $downloadJobStatus->status) {
+            app('log')->debug('Job already done!');
+
+            return response()->json($downloadJobStatus->toArray());
+        }
+        JobStatusManager::setJobStatus(JobStatus::JOB_RUNNING);
+
+        try {
+            $config = session()->get(Constants::CONFIGURATION) ?? [];
+            $routine->setConfiguration(Configuration::fromArray($config));
+            $routine->start();
+        } catch (ImportException $e) {
+        }
+
+        // set done:
+        JobStatusManager::setJobStatus(JobStatus::JOB_DONE);
+
+        return response()->json($downloadJobStatus->toArray());
+    }
+
 }

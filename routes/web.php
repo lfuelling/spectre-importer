@@ -45,8 +45,18 @@ Route::post('/import/spectre-connections/submit', ['uses' => 'Import\ConnectionC
 // once a connection has been made using a token (from previous step), pick up using callback:
 Route::get('/import/callback', ['uses' => 'Import\CallbackController@index', 'as' => 'import.callback.index']);
 
+// go to job configuration
+Route::get('/import/configuration', ['uses' => 'Import\ConfigurationController@index', 'as' => 'import.configure.index']);
+Route::post('/import/configuration', ['uses' => 'Import\ConfigurationController@post', 'as' => 'import.configure.post']);
+
 // download from Spectre
 Route::get('/import/download/index', ['uses' => 'Import\DownloadController@index', 'as' => 'import.download.index']);
+Route::any('/import/download/start', ['uses' => 'Import\DownloadController@start', 'as' => 'import.download.start']);
+Route::get('/import/download/status', ['uses' => 'Import\DownloadController@status', 'as' => 'import.download.status']);
+
+// map data:
+Route::get('/import/mapping', ['uses' => 'Import\MappingController@index', 'as' => 'import.mapping.index']);
+Route::post('/import/mapping', ['uses' => 'Import\MappingController@postIndex', 'as' => 'import.mapping.post']);
 
 // clear session
 Route::get('/flush','IndexController@flush')->name('flush');

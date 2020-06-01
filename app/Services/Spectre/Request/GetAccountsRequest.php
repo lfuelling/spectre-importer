@@ -1,6 +1,6 @@
 <?php
 /**
- * ListConnectionsRequest.php
+ * GetAccountsRequest.php
  * Copyright (c) 2020 james@firefly-iii.org
  *
  * This file is part of the Firefly III Spectre importer
@@ -22,25 +22,22 @@
 
 declare(strict_types=1);
 
-
 namespace App\Services\Spectre\Request;
 
 use App\Exceptions\SpectreErrorException;
 use App\Services\Spectre\Response\ErrorResponse;
-use App\Services\Spectre\Response\ListConnectionsResponse;
-use App\Services\Spectre\Response\ListCustomersResponse;
+use App\Services\Spectre\Response\GetAccountsResponse;
 use App\Services\Spectre\Response\Response;
-use JsonException;
 use Log;
 
 /**
- * Class ListConnectionsRequest
+ * Class GetAccountsRequest
  * TODO is not yet paginated.
  */
-class ListConnectionsRequest extends Request
+class GetAccountsRequest extends Request
 {
-    /** @var string */
-    public string $customer;
+    public int $connection;
+
 
     /**
      * ListConnectionsRequest constructor.
@@ -55,19 +52,18 @@ class ListConnectionsRequest extends Request
         $this->setBase($url);
         $this->setAppId($appId);
         $this->setSecret($secret);
-        $this->setUri('connections');
+        $this->setUri('accounts');
     }
 
     /**
      * @inheritDoc
-     * @throws JsonException
      */
     public function get(): Response
     {
-        Log::debug('ListConnectionsRequest::get()');
+        Log::debug('GetAccountsRequest::get()');
         $this->setParameters(
             [
-                'customer_id' => $this->customer,
+                'connection_id' => $this->connection,
             ]
         );
         try {
@@ -77,15 +73,7 @@ class ListConnectionsRequest extends Request
             return new ErrorResponse($e->json ?? []);
         }
 
-        return new ListConnectionsResponse($response['data']);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function post(): Response
-    {
-        // TODO: Implement post() method.
+        return new GetAccountsResponse($response['data']);
     }
 
     /**
@@ -94,5 +82,13 @@ class ListConnectionsRequest extends Request
     public function put(): Response
     {
         // TODO: Implement put() method.
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function post(): Response
+    {
+        // TODO: Implement post() method.
     }
 }

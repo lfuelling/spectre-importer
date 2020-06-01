@@ -44,6 +44,7 @@ declare(strict_types=1);
 
 namespace App\Services\Configuration;
 
+use Carbon\Carbon;
 use Log;
 
 /**
@@ -55,8 +56,7 @@ class Configuration
     public const VERSION = 1;
     /** @var bool */
     private $addImportTag;
-    /** @var array */
-    private $doMapping;
+
     /** @var bool When set to true, the importer will ignore existing duplicate transactions found in Firefly III. */
     private $ignoreDuplicateTransactions;
     /** @var array */
@@ -70,8 +70,16 @@ class Configuration
     /** @var int */
     private $version;
 
-    private int $connection;
-    private int $identifier;
+    private ?string $dateNotAfter;
+    private ?string $dateNotBefore;
+
+    private ?int    $dateRangeNumber;
+    private ?string $dateRangeUnit;
+    private ?string $dateRange;
+    private array   $accounts;
+    private int     $connection;
+    private int     $identifier;
+    private bool    $doMapping;
 
     /**
      * Configuration constructor.
@@ -84,10 +92,16 @@ class Configuration
         $this->skipKey                     = false;
         $this->addImportTag                = true;
         $this->mapping                     = [];
-        $this->doMapping                   = [];
+        $this->doMapping                   = false;
         $this->version                     = self::VERSION;
         $this->identifier                  = 0;
         $this->connection                  = 0;
+        $this->accounts                    = [];
+        $this->dateRange                   = 'all';
+        $this->dateRangeNumber             = 30;
+        $this->dateRangeUnit               = 'd';
+        $this->dateNotBefore               = '';
+        $this->dateNotAfter                = '';
     }
 
     /**
@@ -97,20 +111,35 @@ class Configuration
      */
     public static function fromArray(array $array): self
     {
+        Log::debug('Configuration::fromArray', $array);
         $version                             = $array['version'] ?? 1;
         $object                              = new self;
-        $object->ignoreDuplicateTransactions = $array['ignore_duplicate_transactions'] ?? false;
+        $object->ignoreDuplicateTransactions = $array['ignore_duplicate_transactions'] ?? true;
         $object->rules                       = $array['rules'] ?? true;
         $object->skipForm                    = $array['skip_form'] ?? false;
         $object->skipKey                     = $array['skip_key'] ?? false;
         $object->addImportTag                = $array['add_import_tag'] ?? true;
         $object->mapping                     = $array['mapping'] ?? [];
-        $object->doMapping                   = $array['do_mapping'] ?? [];
+        $object->doMapping                   = $array['do_mapping'] ?? false;
         $object->identifier                  = $array['identifier'] ?? 0;
         $object->connection                  = $array['connection'] ?? 0;
+        $object->accounts                    = $array['accounts'] ?? [];
+        $object->dateRange                   = $array['date_range'] ?? 'all';
+        $object->dateRangeNumber             = $array['date_range_number'] ?? 30;
+        $object->dateRangeUnit               = $array['date_range_unit'] ?? 'd';
+        $object->dateNotBefore               = $array['date_not_before'] ?? '';
+        $object->dateNotAfter                = $array['date_not_after'] ?? '';
         $object->version                     = $version;
 
         return $object;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDateRange(): string
+    {
+        return $this->dateRange;
     }
 
     /**
@@ -127,42 +156,13 @@ class Configuration
     }
 
     /**
-     * @param array $array
-     *
-     * @return $this
+     * @return bool
      */
-    public static function fromRequest(array $array): self
+    public function isDoMapping(): bool
     {
-        $object                              = new self;
-        $object->version                     = self::VERSION;
-        $object->ignoreDuplicateTransactions = $array['ignore_duplicate_transactions'];
-        $object->rules                       = $array['rules'];
-        $object->skipForm                    = $array['skip_form'];
-        $object->skipKey                     = $array['skip_key'];
-        $object->addImportTag                = $array['add_import_tag'] ?? true;
-        $object->mapping                     = $array['mapping'];
-        $object->doMapping                   = $array['do_mapping'];
-        $object->identifier                  = $array['identifier'] ?? 0;
-        $object->connection                  = $array['connection'] ?? 0;
-
-        return $object;
+        return $this->doMapping;
     }
 
-    /**
-     * @return array
-     */
-    public function getDoMapping(): array
-    {
-        return $this->doMapping ?? [];
-    }
-
-    /**
-     * @param array $doMapping
-     */
-    public function setDoMapping(array $doMapping): void
-    {
-        $this->doMapping = $doMapping;
-    }
 
     /**
      * @return array
@@ -213,6 +213,7 @@ class Configuration
         return $this->rules;
     }
 
+
     /**
      * @return bool
      */
@@ -220,6 +221,39 @@ class Configuration
     {
         return $this->skipForm;
     }
+
+    /**
+     * @return string
+     */
+    public function getDateNotAfter(): string
+    {
+        return $this->dateNotAfter;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDateNotBefore(): string
+    {
+        return $this->dateNotBefore;
+    }
+
+    /**
+     * @return int
+     */
+    public function getDateRangeNumber(): int
+    {
+        return $this->dateRangeNumber;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDateRangeUnit(): string
+    {
+        return $this->dateRangeUnit;
+    }
+
 
     /**
      * @param array $roles
@@ -272,9 +306,163 @@ class Configuration
     /**
      * @return array
      */
+    public function getAccounts(): array
+    {
+        return $this->accounts;
+    }
+
+    /**
+     * @param bool $addImportTag
+     */
+    public function setAddImportTag(bool $addImportTag): void
+    {
+        $this->addImportTag = $addImportTag;
+    }
+
+    /**
+     * @param bool $ignoreDuplicateTransactions
+     */
+    public function setIgnoreDuplicateTransactions(bool $ignoreDuplicateTransactions): void
+    {
+        $this->ignoreDuplicateTransactions = $ignoreDuplicateTransactions;
+    }
+
+    /**
+     * @param bool $rules
+     */
+    public function setRules(bool $rules): void
+    {
+        $this->rules = $rules;
+    }
+
+    /**
+     * @param bool $skipForm
+     */
+    public function setSkipForm(bool $skipForm): void
+    {
+        $this->skipForm = $skipForm;
+    }
+
+    /**
+     * @param string $dateNotAfter
+     */
+    public function setDateNotAfter(string $dateNotAfter): void
+    {
+        $this->dateNotAfter = $dateNotAfter;
+    }
+
+    /**
+     * @param string $dateNotBefore
+     */
+    public function setDateNotBefore(string $dateNotBefore): void
+    {
+        $this->dateNotBefore = $dateNotBefore;
+    }
+
+    /**
+     * @param int $dateRangeNumber
+     */
+    public function setDateRangeNumber(int $dateRangeNumber): void
+    {
+        $this->dateRangeNumber = $dateRangeNumber;
+    }
+
+    /**
+     * @param string $dateRangeUnit
+     */
+    public function setDateRangeUnit(string $dateRangeUnit): void
+    {
+        $this->dateRangeUnit = $dateRangeUnit;
+    }
+
+    /**
+     * @param string $dateRange
+     */
+    public function setDateRange(string $dateRange): void
+    {
+        $this->dateRange = $dateRange;
+    }
+
+    /**
+     * @param bool $doMapping
+     */
+    public function setDoMapping(bool $doMapping): void
+    {
+        $this->doMapping = $doMapping;
+    }
+
+    /**
+     * @param array $accounts
+     */
+    public function setAccounts(array $accounts): void
+    {
+        Log::debug('Configuration::setAccounts', $accounts);
+        $this->accounts = $accounts;
+    }
+
+    /**
+     *
+     */
+    public function updateDateRange(): void
+    {
+        // set date and time:
+        switch ($this->dateRange) {
+            case 'all':
+                $this->dateRangeUnit   = null;
+                $this->dateRangeNumber = null;
+                $this->dateNotBefore   = null;
+                $this->dateNotAfter    = null;
+                break;
+            case 'partial':
+                $this->dateNotAfter  = null;
+                $this->dateNotBefore = self::calcDateNotBefore($this->dateRangeUnit, $this->dateRangeNumber);
+                break;
+            case 'range':
+                $before = $this->dateNotBefore;
+                $after  = $this->dateNotAfter;
+
+                if (null !== $before && null !== $after && $this->dateNotBefore > $this->dateNotAfter) {
+                    [$before, $after] = [$after, $before];
+                }
+
+                $this->dateNotBefore = null === $before ? null : $before->format('Y-m-d');
+                $this->dateNotAfter  = null === $after ? null : $after->format('Y-m-d');
+        }
+    }
+
+
+    /**
+     * @param string $unit
+     * @param int    $number
+     *
+     * @return string|null
+     */
+    private static function calcDateNotBefore(string $unit, int $number): ?string
+    {
+        $functions = [
+            'd' => 'subDays',
+            'w' => 'subWeeks',
+            'm' => 'subMonths',
+            'y' => 'subYears',
+        ];
+        if (isset($functions[$unit])) {
+            $today    = Carbon::now();
+            $function = $functions[$unit];
+            $today->$function($number);
+
+            return $today->format('Y-m-d');
+        }
+        app('log')->error(sprintf('Could not parse date setting. Unknown key "%s"', $unit));
+
+        return null;
+    }
+
+    /**
+     * @return array
+     */
     public function toArray(): array
     {
-        return [
+        $array = [
             'ignore_duplicate_transactions' => $this->ignoreDuplicateTransactions,
             'rules'                         => $this->rules,
             'skip_form'                     => $this->skipForm,
@@ -285,8 +473,16 @@ class Configuration
             'identifier'                    => $this->identifier,
             'connection'                    => $this->connection,
             'version'                       => $this->version,
-
+            'accounts'                      => $this->accounts,
+            'date_range'                    => $this->dateRange,
+            'date_range_number'             => $this->dateRangeNumber,
+            'date_range_unit'               => $this->dateRangeUnit,
+            'date_not_before'               => $this->dateNotBefore,
+            'date_not_after'                => $this->dateNotAfter,
         ];
+        Log::debug('Configuration::toArray', $array);
+
+        return $array;
     }
 
 
