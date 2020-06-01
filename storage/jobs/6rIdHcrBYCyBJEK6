@@ -1,0 +1,11 @@
+{
+    "status": "job_running",
+    "errors": [],
+    "warnings": [],
+    "messages": [
+        [
+            "Decoded Spectre download.",
+            "Parsed 53 Spectre transactions for further processing."
+        ]
+    ]
+}

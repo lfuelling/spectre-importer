@@ -113,8 +113,7 @@ class GenerateTransactions
                 // TODO error handling at this point.
             }
         }
-        $this->addMessage(0, sprintf('Parsed %d bunq transactions for further processing.', count($return)));
-        exit;
+        $this->addMessage(0, sprintf('Parsed %d Spectre transactions for further processing.', count($return)));
 
         return $return;
     }

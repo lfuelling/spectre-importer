@@ -1,0 +1,172 @@
+{
+    "status": "job_done",
+    "errors": {
+        "1": [
+            "This value is invalid for this field."
+        ],
+        "2": [
+            "This value is invalid for this field."
+        ],
+        "3": [
+            "This value is invalid for this field."
+        ],
+        "4": [
+            "This value is invalid for this field."
+        ],
+        "5": [
+            "This value is invalid for this field."
+        ],
+        "6": [
+            "This value is invalid for this field."
+        ],
+        "7": [
+            "This value is invalid for this field."
+        ],
+        "8": [
+            "This value is invalid for this field."
+        ],
+        "9": [
+            "This value is invalid for this field."
+        ],
+        "10": [
+            "This value is invalid for this field."
+        ],
+        "11": [
+            "This value is invalid for this field."
+        ],
+        "12": [
+            "This value is invalid for this field."
+        ],
+        "13": [
+            "This value is invalid for this field."
+        ],
+        "14": [
+            "This value is invalid for this field."
+        ],
+        "15": [
+            "This value is invalid for this field."
+        ],
+        "16": [
+            "This value is invalid for this field."
+        ],
+        "17": [
+            "This value is invalid for this field."
+        ],
+        "18": [
+            "This value is invalid for this field."
+        ],
+        "19": [
+            "This value is invalid for this field."
+        ],
+        "20": [
+            "This value is invalid for this field."
+        ],
+        "21": [
+            "This value is invalid for this field."
+        ],
+        "22": [
+            "This value is invalid for this field."
+        ],
+        "23": [
+            "This value is invalid for this field."
+        ],
+        "24": [
+            "This value is invalid for this field."
+        ],
+        "25": [
+            "This value is invalid for this field."
+        ],
+        "26": [
+            "This value is invalid for this field."
+        ],
+        "27": [
+            "This value is invalid for this field."
+        ],
+        "28": [
+            "This value is invalid for this field."
+        ],
+        "29": [
+            "This value is invalid for this field."
+        ],
+        "30": [
+            "This value is invalid for this field."
+        ],
+        "31": [
+            "This value is invalid for this field."
+        ],
+        "32": [
+            "This value is invalid for this field."
+        ],
+        "33": [
+            "This value is invalid for this field."
+        ],
+        "34": [
+            "This value is invalid for this field."
+        ],
+        "35": [
+            "This value is invalid for this field."
+        ],
+        "36": [
+            "This value is invalid for this field."
+        ],
+        "37": [
+            "This value is invalid for this field."
+        ],
+        "38": [
+            "This value is invalid for this field."
+        ],
+        "39": [
+            "This value is invalid for this field."
+        ],
+        "40": [
+            "This value is invalid for this field."
+        ],
+        "41": [
+            "This value is invalid for this field."
+        ],
+        "42": [
+            "This value is invalid for this field."
+        ],
+        "43": [
+            "This value is invalid for this field."
+        ],
+        "44": [
+            "This value is invalid for this field."
+        ],
+        "45": [
+            "This value is invalid for this field."
+        ],
+        "46": [
+            "This value is invalid for this field."
+        ],
+        "47": [
+            "This value is invalid for this field."
+        ],
+        "48": [
+            "This value is invalid for this field."
+        ],
+        "49": [
+            "This value is invalid for this field."
+        ],
+        "50": [
+            "This value is invalid for this field."
+        ],
+        "51": [
+            "This value is invalid for this field."
+        ],
+        "52": [
+            "This value is invalid for this field."
+        ],
+        "53": [
+            "This value is invalid for this field."
+        ]
+    },
+    "warnings": [],
+    "messages": [
+        [
+            "Decoded Spectre download.",
+            "Parsed 53 Spectre transactions for further processing.",
+            "Filtered down from 53 (possibly duplicate) entries to 53 unique transactions."
+        ]
+    ]
+}

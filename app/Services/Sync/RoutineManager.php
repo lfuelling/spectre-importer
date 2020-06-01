@@ -42,6 +42,8 @@ class RoutineManager
     private ParseSpectreDownload $spectreParser;
     private string               $syncIdentifier;
     private GenerateTransactions $transactionGenerator;
+    private FilterTransactions   $transactionFilter;
+    private SendTransactions     $transactionSender;
 
     /**
      * Collect info on the current job, hold it in memory.
@@ -58,8 +60,8 @@ class RoutineManager
 
         $this->spectreParser        = new ParseSpectreDownload;
         $this->transactionGenerator = new GenerateTransactions;
-        //$this->transactionSender    = new SendTransactions;
-        //$this->transactionFilter    = new FilterTransactions;
+        $this->transactionFilter    = new FilterTransactions;
+        $this->transactionSender    = new SendTransactions;
 
         // get line converter
         $this->allMessages = [];
@@ -73,8 +75,8 @@ class RoutineManager
         }
         $this->spectreParser->setIdentifier($this->syncIdentifier);
         $this->transactionGenerator->setIdentifier($this->syncIdentifier);
-        //$this->transactionSender->setIdentifier($this->syncIdentifier);
-        //$this->transactionFilter->setIdentifier($this->syncIdentifier);
+        $this->transactionFilter->setIdentifier($this->syncIdentifier);
+        $this->transactionSender->setIdentifier($this->syncIdentifier);
     }
 
     /**
@@ -140,7 +142,7 @@ class RoutineManager
     {
         $this->configuration = $configuration;
         $this->transactionGenerator->setConfiguration($configuration);
-        //$this->transactionSender->setConfiguration($configuration);
+        $this->transactionSender->setConfiguration($configuration);
     }
 
     /**
@@ -164,12 +166,12 @@ class RoutineManager
         $transactions = $this->transactionGenerator->getTransactions($array);
         app('log')->debug(sprintf('Generated %d Firefly III transactions.', count($transactions)));
 
-        //        $filtered = $this->transactionFilter->filter($transactions);
-        //        app('log')->debug(sprintf('Filtered down to %d Firefly III transactions.', count($filtered)));
+        $filtered = $this->transactionFilter->filter($transactions);
+        app('log')->debug(sprintf('Filtered down to %d Firefly III transactions.', count($filtered)));
 
         // send to Firefly III.
-        //app('log')->debug('Going to send them to Firefly III.');
-        //$sent = $this->transactionSender->send($filtered);
+        app('log')->debug('Going to send them to Firefly III.');
+        $sent = $this->transactionSender->send($filtered);
     }
 
     private function generateSyncIdentifier(): void
