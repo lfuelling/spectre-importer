@@ -54,9 +54,17 @@ Route::get('/import/download/index', ['uses' => 'Import\DownloadController@index
 Route::any('/import/download/start', ['uses' => 'Import\DownloadController@start', 'as' => 'import.download.start']);
 Route::get('/import/download/status', ['uses' => 'Import\DownloadController@status', 'as' => 'import.download.status']);
 
+// download config:
+Route::get('/configuration/download', ['uses' => 'Import\ConfigurationController@download', 'as' => 'import.configuration.download']);
+
 // map data:
 Route::get('/import/mapping', ['uses' => 'Import\MappingController@index', 'as' => 'import.mapping.index']);
 Route::post('/import/mapping', ['uses' => 'Import\MappingController@postIndex', 'as' => 'import.mapping.post']);
+
+// send to Firefly III
+Route::get('/import/sync', ['uses' => 'Import\SyncController@index', 'as' => 'import.sync.index']);
+Route::any('/import/sync/start', ['uses' => 'Import\SyncController@start', 'as' => 'import.sync.start']);
+Route::get('/import/sync/status', ['uses' => 'Import\SyncController@status', 'as' => 'import.sync.status']);
 
 // clear session
 Route::get('/flush','IndexController@flush')->name('flush');
@@ -65,3 +73,6 @@ Route::get('/flush','IndexController@flush')->name('flush');
 Route::get('/back/start', 'NavController@toStart')->name('back.start');
 Route::get('/back/upload', 'NavController@toUpload')->name('back.upload');
 Route::get('/back/public-keys', 'NavController@toPublicKey')->name('back.public-key');
+Route::get('/back/connection', 'NavController@toConnection')->name('back.select-connection');
+Route::get('/back/config', 'NavController@toConfig')->name('back.config');
+Route::get('/back/mapping', 'NavController@toMapping')->name('back.mapping');

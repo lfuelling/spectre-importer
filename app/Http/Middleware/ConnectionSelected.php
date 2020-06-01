@@ -1,6 +1,6 @@
 <?php
 /**
- * StartController.php
+ * ConnectionSelected.php
  * Copyright (c) 2020 james@firefly-iii.org
  *
  * This file is part of the Firefly III Spectre importer
@@ -22,39 +22,32 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Import;
+namespace App\Http\Middleware;
 
 
-use App\Http\Controllers\Controller;
-use App\Http\Middleware\UploadedFiles;
-use Illuminate\Contracts\View\Factory;
-use Illuminate\View\View;
-
+use App\Services\Session\Constants;
+use Illuminate\Http\Request;
+use Closure;
 /**
- * Class StartController
+ * Class ConnectionSelected
  */
-class StartController extends Controller
+class ConnectionSelected
 {
     /**
-     * StartController constructor.
+     * Check if the user has already uploaded files in this session. If so, continue to configuration.
+     *
+     * @param Request $request
+     * @param Closure $next
+     *
+     * @return mixed
+     *
      */
-    public function __construct()
+    public function handle(Request $request, Closure $next)
     {
-        parent::__construct();
-        $this->middleware(UploadedFiles::class);
-        app('view')->share('pageTitle', 'Start your import');
+        if (session()->has(Constants::CONNECTION_SELECTED_INDICATOR) && 'true' === session()->get(Constants::CONNECTION_SELECTED_INDICATOR)) {
+            return redirect()->route('import.configure.index');
+        }
+
+        return $next($request);
     }
-
-    /**
-     * @return Factory|View
-     */
-    public function index()
-    {
-        $mainTitle = 'Import routine';
-        $subTitle  = 'Start page and instructions';
-
-        return view('import.start.index', compact('mainTitle', 'subTitle'));
-    }
-
-
 }

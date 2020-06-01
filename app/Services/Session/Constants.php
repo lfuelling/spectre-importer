@@ -49,21 +49,29 @@ namespace App\Services\Session;
  */
 class Constants
 {
-    /** @var string  */
+    /** @var string */
     public const HAS_UPLOAD = 'has_uploaded_file';
-    /** @var string  */
+    /** @var string */
     public const UPLOAD_CSV_FILE = 'csv_file_path';
-    /** @var string  */
+
+    /** @var string */
+    public const CONNECTION_SELECTED_INDICATOR = 'connection_selected';
+
+    /** @var string */
     public const UPLOAD_CONFIG_FILE = 'config_file_path';
-    /** @var string  */
+    /** @var string */
     public const CONFIGURATION = 'configuration';
-    /** @var string  */
+    /** @var string */
     public const CONFIG_COMPLETE_INDICATOR = 'config_complete';
     /** @var string string */
     public const ROLES_COMPLETE_INDICATOR = 'role_config_complete';
-
+    /** @var string */
+    public const KEY_COMPLETE_INDICATOR = 'key_complete';
     /** @var string */
     public const DOWNLOAD_JOB_IDENTIFIER = 'download_job_id';
+
+    /** @var string  */
+    public const SYNC_JOB_IDENTIFIER = 'sync_job_id';
 
     /** @var string */
     public const MAPPING_COMPLETE_INDICATOR = 'mapping_config_complete';

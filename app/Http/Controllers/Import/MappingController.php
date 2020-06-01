@@ -10,11 +10,14 @@ use App\Services\Configuration\Configuration;
 use App\Services\Session\Constants;
 use GrumpyDictator\FFIIIApiSupport\Exceptions\ApiHttpException;
 use GrumpyDictator\FFIIIApiSupport\Request\GetAccountsRequest;
+use GrumpyDictator\FFIIIApiSupport\Request\GetCategoriesRequest;
 use GrumpyDictator\FFIIIApiSupport\Response\GetAccountsResponse;
+use GrumpyDictator\FFIIIApiSupport\Response\GetCategoriesResponse;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use JsonException;
 
 /**
  * Class MappingController.
@@ -51,12 +54,23 @@ class MappingController extends Controller
         $mapping = $configuration->getMapping();
 
         // parse all opposing accounts from the download
-        $spectreAccounts = $this->getOpposingAccounts();
+        $spectreAccounts   = $this->getOpposingAccounts();
+        $spectreCategories = $this->getSpectreCategories();
 
         // get accounts from Firefly III
-        $ff3Accounts = $this->getFireflyIIIAccounts();
+        $ff3Accounts   = $this->getFireflyIIIAccounts();
+        $ff3Categories = $this->getFireflyIIICategories();
 
-        return view('import.mapping.index', compact('mainTitle', 'subTitle', 'configuration', 'spectreAccounts', 'ff3Accounts', 'mapping'));
+        // get categories:
+
+
+        return view(
+            'import.mapping.index',
+            compact(
+                'mainTitle', 'subTitle', 'configuration', 'ff3Categories',
+                'spectreAccounts', 'spectreCategories', 'ff3Accounts', 'mapping'
+            )
+        );
     }
 
     /**
@@ -69,10 +83,16 @@ class MappingController extends Controller
     public function postIndex(Request $request)
     {
         // post mapping is not particularly complex.
-        $result       = $request->all();
-        $mapping      = $result['mapping'] ?? [];
-        $accountTypes = $result['account_type'] ?? [];
+        $result = $request->all();
 
+        $categoryMapping = $result['mapping_categories'] ?? [];
+        $accountMapping  = $result['mapping_accounts'] ?? [];
+        $mapping         = [
+            'accounts'   => $accountMapping,
+            'categories' => $categoryMapping,
+        ];
+
+        $accountTypes  = $result['account_type'] ?? [];
         $configuration = Configuration::fromArray([]);
         if (session()->has(Constants::CONFIGURATION)) {
             $configuration = Configuration::fromArray(session()->get(Constants::CONFIGURATION));
@@ -123,6 +143,57 @@ class MappingController extends Controller
     }
 
     /**
+     * @throws ApiHttpException
+     * @return array
+     */
+    private function getFireflyIIICategories(): array
+    {
+        $token   = (string) config('spectre.access_token');
+        $uri     = (string) config('spectre.uri');
+        $request = new GetCategoriesRequest($uri, $token);
+        /** @var GetCategoriesResponse $result */
+        $result = $request->get();
+        $return = [];
+        foreach ($result as $entry) {
+            $id          = (int) $entry->id;
+            $return[$id] = $entry->name;
+        }
+        asort($return);
+
+        return $return;
+    }
+
+    /**
+     * @throws FileNotFoundException
+     * @throws JsonException
+     * @return array
+     */
+    private function getSpectreCategories(): array
+    {
+        $downloadIdentifier = session()->get(Constants::DOWNLOAD_JOB_IDENTIFIER);
+        $disk               = Storage::disk('downloads');
+        $json               = $disk->get($downloadIdentifier);
+        $array              = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+        $categories         = [];
+
+        /** @var array $transaction */
+        foreach ($array as $accountId => $transactions) {
+            /** @var array $transaction */
+            foreach ($transactions as $transaction) {
+                $categories[] = $transaction['category'];
+            }
+        }
+        $filtered = array_filter(
+            $categories,
+            static function (string $value) {
+                return '' !== $value;
+            }
+        );
+
+        return array_unique($categories);
+    }
+
+    /**
      * @throws FileNotFoundException
      * @return array
      */
@@ -133,15 +204,12 @@ class MappingController extends Controller
         $json               = $disk->get($downloadIdentifier);
         $array              = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
         $opposing           = [];
-        /** @var array $account */
-        foreach ($array as $account) {
-            foreach ($account as $entry) {
-                if ('' === trim((string) $entry['counter_party']['iban'])) {
-                    $opposing[] = trim($entry['counter_party']['display_name']);
-                }
-                if ('' !== trim((string) $entry['counter_party']['iban'])) {
-                    $opposing[] = sprintf('%s (%s)', trim($entry['counter_party']['display_name']), trim($entry['counter_party']['iban']));
-                }
+
+        /** @var array $transaction */
+        foreach ($array as $accountId => $transactions) {
+            /** @var array $transaction */
+            foreach ($transactions as $transaction) {
+                $opposing[] = $transaction['extra']['payee'] ?? '';
             }
         }
         $filtered = array_filter(

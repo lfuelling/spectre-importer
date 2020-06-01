@@ -16,7 +16,7 @@
             <input type="hidden" name="_token" value="{{ csrf_token() }}"/>
             <div class="row">
                 <div class="col-lg-12">
-                    <p class="lead">Digital signatures</p>
+                    <p class="lead">This key pair is used to sign specific API calls</p>
                     <p>
                         Enter the key you see here on <a href="https://www.saltedge.com/clients/profile/secrets">this page in your Salt Edge settings</a>.
                         If this key changes each time you restart the importer, and you're using Docker, please read <!-- TODO -->
@@ -30,7 +30,7 @@
                     <hr/>
                     <div class="form-group row">
                         <label for="skip_key" class="form-control">
-                            <input type="checkbox"  id="skip_key" name="skip_key" value="1" />
+                            <input type="checkbox"  id="skip_key" name="skip_key" value="1" {% if configuration.isSkipKey %}checked{% endif%} />
                             Skip this page next time
                         </label>
                     </div>

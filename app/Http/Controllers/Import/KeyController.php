@@ -26,6 +26,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Import;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\KeyComplete;
 use App\Services\Configuration\Configuration;
 use App\Services\Local\VerifyKeyMaterial;
 use App\Services\Session\Constants;
@@ -40,6 +41,16 @@ use Log;
 class KeyController extends Controller
 {
     /**
+     * StartController constructor.
+     */
+    public function __construct()
+    {
+        parent::__construct();
+        $this->middleware(KeyComplete::class);
+        app('view')->share('pageTitle', 'Key pair');
+    }
+
+    /**
      * @throws \App\Exceptions\ImportException
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
@@ -48,11 +59,17 @@ class KeyController extends Controller
         VerifyKeyMaterial::verifyOrCreate();
         $publicKey = VerifyKeyMaterial::getPublicKey();
 
-        // list customers. Create new one if necessary.
-        $mainTitle = 'Key material';
-        $subTitle  = 'Required for security';
+        // skip next time?
+        $configuration = Configuration::fromArray([]);
+        if (session()->has(Constants::CONFIGURATION)) {
+            $configuration = Configuration::fromArray(session()->get(Constants::CONFIGURATION));
+        }
 
-        return view('import.key.index', compact('publicKey', 'mainTitle', 'subTitle'));
+        // list customers. Create new one if necessary.
+        $mainTitle = 'Spectre';
+        $subTitle  = 'Cryptographic keypair';
+
+        return view('import.key.index', compact('publicKey', 'mainTitle', 'subTitle', 'configuration'));
     }
 
     /**
@@ -80,6 +97,9 @@ class KeyController extends Controller
         StorageService::storeContent($json);
 
         session()->put(Constants::CONFIGURATION, $configuration->toArray());
+
+        // user has finished key input.
+        session()->put(Constants::KEY_COMPLETE_INDICATOR, 'true');
 
         // redirect to list of logins:
         return redirect(route('import.connections.index'));

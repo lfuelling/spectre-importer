@@ -82,7 +82,7 @@ class TransactionExtra
         $model->postingDate              = isset($data['posting_date']) ? new Carbon($data['posting_date']) : null;
         $model->postingTime              = isset($data['posting_time']) ? new Carbon($data['posting_time']) : null;
         $model->accountNumber            = $data['account_number'] ?? null;
-        $model->originalAmount           = $data['original_amount'] ?? null;
+        $model->originalAmount           = isset($data['original_amount']) ? (string) $data['original_amount'] : null;
         $model->originalCurrencyCode     = $data['original_currency_code'] ?? null;
         $model->assetCode                = $data['asset_code'] ?? null;
         $model->assetAmount              = $data['asset_amount'] ?? null;

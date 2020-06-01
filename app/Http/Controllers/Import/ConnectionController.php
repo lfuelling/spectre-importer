@@ -27,6 +27,7 @@ namespace App\Http\Controllers\Import;
 
 use App\Exceptions\ImportException;
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\ConnectionSelected;
 use App\Services\Configuration\Configuration;
 use App\Services\Session\Constants;
 use App\Services\Spectre\Model\Customer;
@@ -47,6 +48,16 @@ use Log;
  */
 class ConnectionController extends Controller
 {
+    /**
+     * StartController constructor.
+     */
+    public function __construct()
+    {
+        parent::__construct();
+        $this->middleware(ConnectionSelected::class);
+        app('view')->share('pageTitle', 'Connection selection      nice ey?');
+    }
+
     /**
      *
      */
@@ -159,6 +170,7 @@ class ConnectionController extends Controller
         StorageService::storeContent($json);
 
         session()->put(Constants::CONFIGURATION, $configuration->toArray());
+        session()->put(Constants::CONNECTION_SELECTED_INDICATOR, 'true');
 
         // redirect to job configuration
         return redirect(route('import.configure.index'));

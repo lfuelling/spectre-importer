@@ -44,11 +44,31 @@ class NavController extends Controller
     /**
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
+    public function toPublicKey()
+    {
+        session()->forget(Constants::KEY_COMPLETE_INDICATOR);
+
+        return redirect(route('import.keys.index'));
+    }
+
+    /**
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
     public function toUpload()
     {
         session()->forget(Constants::HAS_UPLOAD);
 
         return redirect(route('import.start'));
+    }
+
+    /**
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function toConnection()
+    {
+        session()->forget(Constants::CONNECTION_SELECTED_INDICATOR);
+
+        return redirect(route('import.connections.index'));
     }
 
 }

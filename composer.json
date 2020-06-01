@@ -17,7 +17,8 @@
         "rcrowe/twigbridge": "^0.11.3",
         "firefly-iii/api-support-classes": "dev-master",
         "ext-openssl": "*",
-      "ext-json": "*"
+      "ext-json": "*",
+      "ext-bcmath": "*"
     },
     "require-dev": {
         "roave/security-advisories": "dev-master"

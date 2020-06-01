@@ -80,6 +80,7 @@ class Configuration
     private int     $connection;
     private int     $identifier;
     private bool    $doMapping;
+    private array   $accountTypes;
 
     /**
      * Configuration constructor.
@@ -91,7 +92,10 @@ class Configuration
         $this->skipForm                    = false;
         $this->skipKey                     = false;
         $this->addImportTag                = true;
-        $this->mapping                     = [];
+        $this->mapping                     = [
+            'accounts'   => [],
+            'categories' => [],
+        ];
         $this->doMapping                   = false;
         $this->version                     = self::VERSION;
         $this->identifier                  = 0;
@@ -102,6 +106,7 @@ class Configuration
         $this->dateRangeUnit               = 'd';
         $this->dateNotBefore               = '';
         $this->dateNotAfter                = '';
+        $this->accountTypes                = [];
     }
 
     /**
@@ -119,7 +124,7 @@ class Configuration
         $object->skipForm                    = $array['skip_form'] ?? false;
         $object->skipKey                     = $array['skip_key'] ?? false;
         $object->addImportTag                = $array['add_import_tag'] ?? true;
-        $object->mapping                     = $array['mapping'] ?? [];
+        $object->mapping                     = $array['mapping'] ?? ['accounts' => [], 'categories' => []];
         $object->doMapping                   = $array['do_mapping'] ?? false;
         $object->identifier                  = $array['identifier'] ?? 0;
         $object->connection                  = $array['connection'] ?? 0;
@@ -129,10 +134,21 @@ class Configuration
         $object->dateRangeUnit               = $array['date_range_unit'] ?? 'd';
         $object->dateNotBefore               = $array['date_not_before'] ?? '';
         $object->dateNotAfter                = $array['date_not_after'] ?? '';
+        $object->accountTypes                = $array['account_types'] ?? [];
         $object->version                     = $version;
 
         return $object;
     }
+
+    /**
+     * @return array
+     */
+    public function getAccountTypes(): array
+    {
+        return $this->accountTypes;
+    }
+
+
 
     /**
      * @return string
@@ -352,6 +368,14 @@ class Configuration
     }
 
     /**
+     * @param array $accountTypes
+     */
+    public function setAccountTypes(array $accountTypes): void
+    {
+        $this->accountTypes = $accountTypes;
+    }
+
+    /**
      * @param string $dateNotBefore
      */
     public function setDateNotBefore(string $dateNotBefore): void
@@ -399,6 +423,15 @@ class Configuration
         Log::debug('Configuration::setAccounts', $accounts);
         $this->accounts = $accounts;
     }
+
+    /**
+     * @return bool
+     */
+    public function isSkipKey(): bool
+    {
+        return $this->skipKey;
+    }
+
 
     /**
      *
@@ -479,6 +512,7 @@ class Configuration
             'date_range_unit'               => $this->dateRangeUnit,
             'date_not_before'               => $this->dateNotBefore,
             'date_not_after'                => $this->dateNotAfter,
+            'account_types'                 => $this->accountTypes,
         ];
         Log::debug('Configuration::toArray', $array);
 
