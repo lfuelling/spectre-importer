@@ -178,7 +178,7 @@ class GenerateTransactions
                 $return['transactions'][0]['source_id'] = $mappedId;
                 unset($return['transactions'][0]['source_name']);
             }
-            Log::debug(sprintf('Mapped ID is %s', var_export($mappedId, true)));
+            //Log::debug(sprintf('Mapped ID is %s', var_export($mappedId, true)));
         }
 
         if (-1 === bccomp($entry['amount'], '0')) {

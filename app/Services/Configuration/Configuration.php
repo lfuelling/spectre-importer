@@ -116,7 +116,7 @@ class Configuration
      */
     public static function fromArray(array $array): self
     {
-        Log::debug('Configuration::fromArray', $array);
+        //Log::debug('Configuration::fromArray', $array);
         $version                             = $array['version'] ?? 1;
         $object                              = new self;
         $object->ignoreDuplicateTransactions = $array['ignore_duplicate_transactions'] ?? true;
@@ -148,7 +148,13 @@ class Configuration
         return $this->accountTypes;
     }
 
-
+    /**
+     * @return bool
+     */
+    public function emptyMapping(): bool
+    {
+        return $this->mapping === ['accounts' => [], 'categories' => []];
+    }
 
     /**
      * @return string
@@ -514,7 +520,7 @@ class Configuration
             'date_not_after'                => $this->dateNotAfter,
             'account_types'                 => $this->accountTypes,
         ];
-        Log::debug('Configuration::toArray', $array);
+        //Log::debug('Configuration::toArray', $array);
 
         return $array;
     }

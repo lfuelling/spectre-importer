@@ -71,4 +71,22 @@ class NavController extends Controller
         return redirect(route('import.connections.index'));
     }
 
+    /**
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function toMapping()
+    {
+        return redirect(route('import.mapping.index'));
+    }
+
+    /**
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function toConfig()
+    {
+        session()->forget(Constants::CONFIG_COMPLETE_INDICATOR);
+
+        return redirect(sprintf('%s?overruleskip=true', route('import.configure.index')));
+    }
+
 }

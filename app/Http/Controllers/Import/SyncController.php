@@ -67,11 +67,11 @@ class SyncController extends Controller
 
         // get configuration object.
         $configuration = Configuration::fromArray(session()->get(Constants::CONFIGURATION));
-        if ([] === $configuration->getMapping()) {
+        if (true===$configuration->emptyMapping()) {
             // no mapping, back to roles
             $jobBackUri = route('back.config');
         }
-        if ([] !== $configuration->getMapping()) {
+        if (false===$configuration->emptyMapping()) {
             // back to mapping
             $jobBackUri = route('back.mapping');
         }

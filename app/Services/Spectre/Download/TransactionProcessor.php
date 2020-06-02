@@ -25,7 +25,10 @@ declare(strict_types=1);
 namespace App\Services\Spectre\Download;
 
 use App\Services\Configuration\Configuration;
+use App\Services\Spectre\Model\Transaction;
 use App\Services\Spectre\Request\GetTransactionsRequest;
+use App\Services\Spectre\Response\GetTransactionsResponse;
+use Carbon\Carbon;
 use Log;
 
 /**
@@ -35,12 +38,25 @@ class TransactionProcessor
 {
     private Configuration $configuration;
     private string        $downloadIdentifier;
+    /** @var string */
+    private const DATE_TIME_FORMAT = 'Y-m-d H:i:s';
+
+    private Carbon $notBefore;
+    private Carbon $notAfter;
 
     /**
      * @return array
      */
     public function download(): array
     {
+        if ('' !== (string) $this->configuration->getDateNotBefore()) {
+            $this->notBefore = new Carbon($this->configuration->getDateNotBefore());
+        }
+
+        if ('' !== (string) $this->configuration->getDateNotAfter()) {
+            $this->notAfter = new Carbon($this->configuration->getDateNotAfter());
+        }
+
         Log::debug('Now in download()');
         $accounts = array_keys($this->configuration->getAccounts());
         $return   = [];
@@ -52,6 +68,7 @@ class TransactionProcessor
             $request               = new GetTransactionsRequest($uri, $appId, $secret);
             $request->accountId    = (string) $account;
             $request->connectionId = (string) $this->configuration->getConnection();
+            /** @var GetTransactionsResponse $transactions */
             $transactions          = $request->get();
             /*
              * Getting a Response object means that the Transaction objects are basically cast back into an array making this
@@ -59,7 +76,7 @@ class TransactionProcessor
              *
              * Does mean however that we can normalise the data before we start using it.
              */
-            $return[$account]      = $transactions->toArray();
+            $return[$account] = $this->filterTransactions($transactions);
         }
 
         return $return;
@@ -79,6 +96,45 @@ class TransactionProcessor
     public function setDownloadIdentifier(string $downloadIdentifier): void
     {
         $this->downloadIdentifier = $downloadIdentifier;
+    }
+
+    /**
+     * @param GetTransactionsResponse $transactions
+     */
+    private function filterTransactions(GetTransactionsResponse $transactions): array
+    {
+        Log::debug(sprintf('Going to filter downloaded transactions. Original set length is %d', count($transactions)));
+        $return = [];
+        /** @var Transaction $transaction */
+        foreach ($transactions as $transaction) {
+            $madeOn = $transaction->madeOn;
+
+            if (null !== $this->notBefore && $madeOn->lte($this->notBefore)) {
+                app('log')->info(
+                    sprintf(
+                        'Skip transaction because "%s" is before "%s".',
+                        $madeOn->format(self::DATE_TIME_FORMAT),
+                        $this->notBefore->format(self::DATE_TIME_FORMAT)
+                    )
+                );
+                continue;
+            }
+            if (null !== $this->notAfter && $madeOn->gte($this->notAfter)) {
+                app('log')->info(
+                    sprintf(
+                        'Skip transaction because "%s" is after "%s".',
+                        $madeOn->format(self::DATE_TIME_FORMAT),
+                        $this->notAfter->format(self::DATE_TIME_FORMAT)
+                    )
+                );
+
+                continue;
+            }
+            $return[] = $transaction->toArray();
+        }
+        Log::debug(sprintf('After filtering, set is %d transaction(s)', count($return)));
+
+        return $return;
     }
 
 }

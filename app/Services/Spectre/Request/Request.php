@@ -242,8 +242,8 @@ abstract class Request
         }
 
         // post customer needs no signature, apparantly.
-        $signature            = $this->generateSignature('post', $fullUri, $body);
-        $headers['Signature'] = $signature;
+        //$signature            = $this->generateSignature('post', $fullUri, $body);
+        //$headers['Signature'] = $signature;
 
         Log::debug('Final headers for spectre signed POST request:', $headers);
         try {
