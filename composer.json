@@ -1,12 +1,51 @@
 {
-    "name": "laravel/laravel",
-    "type": "project",
-    "description": "The Laravel Framework.",
+    "name": "firefly-iii/spectre-importer",
+    "description": "Firefly III SaltEdge Spectre Importer Tool.",
     "keywords": [
-        "framework",
-        "laravel"
+        "firefly iii",
+        "firefly-iii",
+        "firefly",
+        "salt edge",
+        "spectre",
+        "import",
+        "importing",
+        "tool",
+        "finance",
+        "finances",
+        "manager",
+        "management",
+        "euro",
+        "dollar",
+        "laravel",
+        "money",
+        "currency",
+        "financials",
+        "financial",
+        "budgets",
+        "administration",
+        "tool",
+        "tooling",
+        "help",
+        "helper",
+        "assistant",
+        "planning",
+        "organizing",
+        "bills",
+        "personal finance",
+        "budgets",
+        "budgeting",
+        "budgeting tool",
+        "budgeting application",
+        "transactions",
+        "self hosted",
+        "self-hosted",
+        "transfers",
+        "management"
     ],
-    "license": "MIT",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/firefly-iii/csv-importer",
+    "type": "project",
+    "readme": "readme.md",
     "require": {
         "php": "^7.4",
         "fideloper/proxy": "^4.2",
@@ -20,9 +59,37 @@
       "ext-json": "*",
       "ext-bcmath": "*"
     },
+    "authors": [
+        {
+            "name": "James Cole",
+            "email": "james@firefly-iii.org",
+            "homepage": "https://github.com/firefly-iii",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "email": "james@firefly-iii.org",
+        "issues": "https://github.com/firefly-iii/firefly-iii/issues",
+        "forum": "https://reddit.com/r/FireflyIII",
+        "source": "https://github.com/firefly-iii/csv-importer",
+        "docs": "https://firefly-iii.gitbook.io/firefly-iii-csv-importer/"
+    },
+    "funding": [
+        {
+            "type": "patreon",
+            "url": "https://www.patreon.com/JC5"
+        },
+        {
+            "type": "github",
+            "url": "https://github.com/sponsors/JC5"
+        },
+        {
+            "type": "paypal",
+            "url": "https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=44UKUT455HUFA"
+        }
+    ],
     "require-dev": {
-        "roave/security-advisories": "dev-master"
-        ,
+        "roave/security-advisories": "dev-master",
         "barryvdh/laravel-debugbar": "^3.3",
         "barryvdh/laravel-ide-helper": "^2.7",
         "doctrine/dbal": "^2.10",
