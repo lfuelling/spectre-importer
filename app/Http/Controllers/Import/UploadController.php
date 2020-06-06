@@ -113,6 +113,6 @@ class UploadController extends Controller
         // user has uploaded (or not) a config file:
         session()->put(Constants::HAS_UPLOAD, 'true');
 
-        return redirect(route('import.keys.index'));
+        return redirect(route('import.connections.index'));
     }
 }

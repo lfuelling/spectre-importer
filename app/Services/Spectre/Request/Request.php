@@ -28,7 +28,6 @@ namespace App\Services\Spectre\Request;
 use App\Exceptions\ImportException;
 use App\Exceptions\SpectreErrorException;
 use App\Exceptions\SpectreHttpException;
-use App\Services\Local\VerifyKeyMaterial;
 use App\Services\Spectre\Response\Response;
 use Exception;
 use GuzzleHttp\Client;
@@ -241,10 +240,6 @@ abstract class Request
             throw new ImportException($e->getMessage());
         }
 
-        // post customer needs no signature, apparantly.
-        //$signature            = $this->generateSignature('post', $fullUri, $body);
-        //$headers['Signature'] = $signature;
-
         Log::debug('Final headers for spectre signed POST request:', $headers);
         try {
             $client = new Client;
@@ -329,38 +324,6 @@ abstract class Request
         $json['ResponseStatusCode'] = $statusCode;
 
         return $json;
-    }
-
-    /**
-     * @param string $method
-     * @param string $uri
-     * @param string $data
-     *
-     * @throws ImportException
-     * @return string
-     *
-     */
-    protected function generateSignature(string $method, string $uri, string $data): string
-    {
-        $privateKey = VerifyKeyMaterial::getPrivateKey();
-        $publicKey = VerifyKeyMaterial::getPublicKey();
-
-        Log::debug('Going to sign with private key associated with:');
-        Log::debug($publicKey);
-
-        $method     = strtolower($method);
-        if ('get' === $method || 'delete' === $method) {
-            $data = '';
-        }
-        $toSign = $this->expiresAt . '|' . strtoupper($method) . '|' . $uri . '|' . $data . ''; // no file so no content there.
-        Log::debug(sprintf('String to sign: "%s"', $toSign));
-        $signature = '';
-
-        // Sign the data
-        openssl_sign($toSign, $signature, $privateKey, OPENSSL_ALGO_SHA256);
-        $signature = base64_encode($signature);
-
-        return $signature;
     }
 
     /**

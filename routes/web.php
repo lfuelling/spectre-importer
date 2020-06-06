@@ -34,10 +34,6 @@ Route::get('/token/validate', 'TokenController@doValidate')->name('token.validat
 Route::get('/import/start', ['uses' => 'Import\StartController@index', 'as' => 'import.start']);
 Route::post('/import/upload', ['uses' => 'Import\UploadController@upload', 'as' => 'import.upload']);
 
-// show user pub + private key, can be skipped.
-Route::get('/import/keys', ['uses' => 'Import\KeyController@index', 'as' => 'import.keys.index']);
-Route::post('/import/submit', ['uses' => 'Import\KeyController@post', 'as' => 'import.keys.post']);
-
 // list tokens (can be skipped)
 Route::get('/import/spectre-connections', ['uses' => 'Import\ConnectionController@index', 'as' => 'import.connections.index']);
 Route::post('/import/spectre-connections/submit', ['uses' => 'Import\ConnectionController@post', 'as' => 'import.connections.post']);
@@ -72,7 +68,6 @@ Route::get('/flush','IndexController@flush')->name('flush');
 // routes to go back to other steps (also takes care of session vars)
 Route::get('/back/start', 'NavController@toStart')->name('back.start');
 Route::get('/back/upload', 'NavController@toUpload')->name('back.upload');
-Route::get('/back/public-keys', 'NavController@toPublicKey')->name('back.public-key');
 Route::get('/back/connection', 'NavController@toConnection')->name('back.select-connection');
 Route::get('/back/config', 'NavController@toConfig')->name('back.config');
 Route::get('/back/mapping', 'NavController@toMapping')->name('back.mapping');

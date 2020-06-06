@@ -44,7 +44,7 @@ class UploadedFiles
     public function handle(Request $request, Closure $next)
     {
         if (session()->has(Constants::HAS_UPLOAD)) {
-            return redirect()->route('import.keys.index');
+            return redirect()->route('import.connections.index');
         }
 
         return $next($request);

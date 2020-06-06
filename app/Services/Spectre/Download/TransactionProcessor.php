@@ -41,14 +41,16 @@ class TransactionProcessor
     /** @var string */
     private const DATE_TIME_FORMAT = 'Y-m-d H:i:s';
 
-    private Carbon $notBefore;
-    private Carbon $notAfter;
+    private ?Carbon $notBefore;
+    private ?Carbon $notAfter;
 
     /**
      * @return array
      */
     public function download(): array
     {
+        $this->notBefore = null;
+        $this->notAfter = null;
         if ('' !== (string) $this->configuration->getDateNotBefore()) {
             $this->notBefore = new Carbon($this->configuration->getDateNotBefore());
         }

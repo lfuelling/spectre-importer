@@ -65,8 +65,6 @@ class Configuration
     private $rules;
     /** @var bool */
     private $skipForm;
-    /** @var bool */
-    private $skipKey;
     /** @var int */
     private $version;
 
@@ -90,7 +88,6 @@ class Configuration
         $this->ignoreDuplicateTransactions = true;
         $this->rules                       = true;
         $this->skipForm                    = false;
-        $this->skipKey                     = false;
         $this->addImportTag                = true;
         $this->mapping                     = [
             'accounts'   => [],
@@ -122,7 +119,6 @@ class Configuration
         $object->ignoreDuplicateTransactions = $array['ignore_duplicate_transactions'] ?? true;
         $object->rules                       = $array['rules'] ?? true;
         $object->skipForm                    = $array['skip_form'] ?? false;
-        $object->skipKey                     = $array['skip_key'] ?? false;
         $object->addImportTag                = $array['add_import_tag'] ?? true;
         $object->mapping                     = $array['mapping'] ?? ['accounts' => [], 'categories' => []];
         $object->doMapping                   = $array['do_mapping'] ?? false;
@@ -286,14 +282,6 @@ class Configuration
     }
 
     /**
-     * @param bool $skipKey
-     */
-    public function setSkipKey(bool $skipKey): void
-    {
-        $this->skipKey = $skipKey;
-    }
-
-    /**
      * @param int $identifier
      */
     public function setIdentifier(int $identifier): void
@@ -431,15 +419,6 @@ class Configuration
     }
 
     /**
-     * @return bool
-     */
-    public function isSkipKey(): bool
-    {
-        return $this->skipKey;
-    }
-
-
-    /**
      *
      */
     public function updateDateRange(): void
@@ -505,7 +484,6 @@ class Configuration
             'ignore_duplicate_transactions' => $this->ignoreDuplicateTransactions,
             'rules'                         => $this->rules,
             'skip_form'                     => $this->skipForm,
-            'skip_key'                      => $this->skipKey,
             'add_import_tag'                => $this->addImportTag,
             'do_mapping'                    => $this->doMapping,
             'mapping'                       => $this->mapping,
