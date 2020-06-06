@@ -117,4 +117,29 @@ class RoutineManager
     }
 
 
+    /**
+     * @return array
+     */
+    public function getAllMessages(): array
+    {
+        return $this->allMessages;
+    }
+
+    /**
+     * @return array
+     */
+    public function getAllWarnings(): array
+    {
+        return $this->allWarnings;
+    }
+
+    /**
+     * @return array
+     */
+    public function getAllErrors(): array
+    {
+        return $this->allErrors;
+    }
+
+
 }

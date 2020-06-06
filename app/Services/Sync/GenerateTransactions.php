@@ -1,26 +1,6 @@
 <?php
 
 declare(strict_types=1);
-/**
- * GenerateTransactions.php
- * Copyright (c) 2020 james@firefly-iii.org.
- *
- * This file is part of the Firefly III bunq importer
- * (https://github.com/firefly-iii/bunq-importer).
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
 
 namespace App\Services\Sync;
 
@@ -161,7 +141,7 @@ class GenerateTransactions
 
 
         if (1 === bccomp($entry['amount'], '0')) {
-            // amount is positive: deposit or transfer. Bunq account is destination
+            // amount is positive: deposit or transfer. Spectre account is destination
             $return['transactions'][0]['type']   = 'deposit';
             $return['transactions'][0]['amount'] = $entry['amount'];
 
@@ -185,7 +165,7 @@ class GenerateTransactions
             // amount is negative: withdrawal or transfer.
             $return['transactions'][0]['amount'] = bcmul($entry['amount'], '-1');
 
-            // source is bunq:
+            // source is Spectre:
             $return['transactions'][0]['source_id'] = (int) $this->accounts[$spectreAccountId];
             // dest is shop
             $return['transactions'][0]['destination_name'] = $entry['extra']['payee'] ?? '(unknown destination account)';
