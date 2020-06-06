@@ -1,6 +1,6 @@
 <?php
 /**
- * spectre.php
+ * HaveAccess.php
  * Copyright (c) 2020 james@firefly-iii.org
  *
  * This file is part of the Firefly III Spectre importer
@@ -22,16 +22,32 @@
 
 declare(strict_types=1);
 
+namespace App\Console;
 
-return [
-    'version'         => '1.0.0-alpha.3',
-    'access_token'    => env('FIREFLY_III_ACCESS_TOKEN'),
-    'uri'             => env('FIREFLY_III_URI'),
-    'upload_path'     => storage_path('uploads'),
-    'minimum_version' => '5.2.8',
-    'spectre_app_id'  => env('SPECTRE_APP_ID', ''),
-    'spectre_secret'  => env('SPECTRE_SECRET', ''),
-    'spectre_uri'     => 'https://www.saltedge.com/api/v5',
-    'skip_key_step'   => false,
-    'trusted_proxies' => env('TRUSTED_PROXIES', ''),
-];
+use GrumpyDictator\FFIIIApiSupport\Exceptions\ApiHttpException;
+use GrumpyDictator\FFIIIApiSupport\Request\SystemInformationRequest;
+
+/**
+ * Trait HaveAccess.
+ */
+trait HaveAccess
+{
+    /**
+     * @return bool
+     */
+    private function haveAccess(): bool
+    {
+        $uri     = (string) config('spectre.uri');
+        $token   = (string) config('spectre.access_token');
+        $request = new SystemInformationRequest($uri, $token);
+        try {
+            $request->get();
+        } catch (ApiHttpException $e) {
+            $this->error(sprintf('Could not connect to Firefly III: %s', $e->getMessage()));
+
+            return false;
+        }
+
+        return true;
+    }
+}

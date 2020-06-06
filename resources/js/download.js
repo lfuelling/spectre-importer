@@ -1,9 +1,10 @@
+
 /*
  * download.js
  * Copyright (c) 2020 james@firefly-iii.org
  *
- * This file is part of the Firefly III bunq importer
- * (https://github.com/firefly-iii/bunq-importer).
+ * This file is part of the Firefly III Spectre importer
+ * (https://github.com/firefly-iii/spectre-importer).
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as

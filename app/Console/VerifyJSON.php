@@ -1,6 +1,6 @@
 <?php
 /**
- * spectre.php
+ * VerifyJSON.php
  * Copyright (c) 2020 james@firefly-iii.org
  *
  * This file is part of the Firefly III Spectre importer
@@ -22,16 +22,34 @@
 
 declare(strict_types=1);
 
+namespace App\Console;
 
-return [
-    'version'         => '1.0.0-alpha.3',
-    'access_token'    => env('FIREFLY_III_ACCESS_TOKEN'),
-    'uri'             => env('FIREFLY_III_URI'),
-    'upload_path'     => storage_path('uploads'),
-    'minimum_version' => '5.2.8',
-    'spectre_app_id'  => env('SPECTRE_APP_ID', ''),
-    'spectre_secret'  => env('SPECTRE_SECRET', ''),
-    'spectre_uri'     => 'https://www.saltedge.com/api/v5',
-    'skip_key_step'   => false,
-    'trusted_proxies' => env('TRUSTED_PROXIES', ''),
-];
+use Exception;
+use JsonException;
+
+/**
+ * Trait VerifyJSON.
+ */
+trait VerifyJSON
+{
+    /**
+     * @param string $file
+     *
+     * @return bool
+     */
+    private function verifyJSON(string $file): bool
+    {
+        // basic check on the JSON.
+        $json = file_get_contents($file);
+        try {
+            $configuration = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+        } catch (Exception | JsonException $e) {
+            $message = sprintf('The importer can\'t import: could not decode the JSON in the config file: %s', $e->getMessage());
+            app('log')->error($message);
+
+            return false;
+        }
+
+        return true;
+    }
+}

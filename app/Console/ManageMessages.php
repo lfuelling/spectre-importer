@@ -1,6 +1,6 @@
 <?php
 /**
- * spectre.php
+ * ManageMessages.php
  * Copyright (c) 2020 james@firefly-iii.org
  *
  * This file is part of the Firefly III Spectre importer
@@ -23,15 +23,31 @@
 declare(strict_types=1);
 
 
-return [
-    'version'         => '1.0.0-alpha.3',
-    'access_token'    => env('FIREFLY_III_ACCESS_TOKEN'),
-    'uri'             => env('FIREFLY_III_URI'),
-    'upload_path'     => storage_path('uploads'),
-    'minimum_version' => '5.2.8',
-    'spectre_app_id'  => env('SPECTRE_APP_ID', ''),
-    'spectre_secret'  => env('SPECTRE_SECRET', ''),
-    'spectre_uri'     => 'https://www.saltedge.com/api/v5',
-    'skip_key_step'   => false,
-    'trusted_proxies' => env('TRUSTED_PROXIES', ''),
-];
+namespace App\Console;
+
+/**
+ * Trait ManageMessages
+ */
+trait ManageMessages
+{
+
+    /**
+     * @param string $key
+     * @param array  $messages
+     */
+    protected function listMessages(string $key, array $messages): void
+    {
+        if (count($messages) > 0) {
+            /**
+             * @var int   $index
+             * @var array $error
+             */
+            foreach ($messages as $index => $list) {
+                /** @var string $line */
+                foreach ($list as $line) {
+                    $this->error(sprintf('%s in line #%d: %s', $key, $index + 1, $line));
+                }
+            }
+        }
+    }
+}
