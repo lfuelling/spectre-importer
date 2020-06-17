@@ -27,6 +27,7 @@ return [
     'version'         => '1.0.0-alpha.4',
     'access_token'    => env('FIREFLY_III_ACCESS_TOKEN'),
     'uri'             => env('FIREFLY_III_URI'),
+    'verify_cert'     => env('FIREFLY_III_VERIFY_TLS_CERT'),
     'upload_path'     => storage_path('uploads'),
     'minimum_version' => '5.2.8',
     'spectre_app_id'  => env('SPECTRE_APP_ID', ''),
