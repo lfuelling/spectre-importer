@@ -7,8 +7,8 @@ ENV HOMEPATH=/var/www/html COMPOSER_ALLOW_SUPERUSER=1
 LABEL version="dev"
 
 # Fetch scripts from helper repo :/
-RUN curl -SL https://raw.githubusercontent.com/firefly-iii/spectre-importer-docker/master/scripts/site.conf -o /etc/apache2/sites-available/000-default.conf && \
-    curl -SL https://raw.githubusercontent.com/firefly-iii/spectre-importer-docker/master/scripts/entrypoint.sh -o /entrypoint.sh
+RUN curl -SL https://raw.githubusercontent.com/lfuelling/spectre-importer-docker/master/scripts/site.conf -o /etc/apache2/sites-available/000-default.conf && \
+    curl -SL https://raw.githubusercontent.com/lfuelling/spectre-importer-docker/master/scripts/entrypoint.sh -o /entrypoint.sh
 
 RUN chmod +x /entrypoint.sh
 
