@@ -345,9 +345,7 @@ abstract class Request
     {
         // config here
 
-        return new Client(array (
-            'verify' => (string) config('spectre.verify_cert') === 'true'
-        ));
+        return new Client;
     }
 
     /**
