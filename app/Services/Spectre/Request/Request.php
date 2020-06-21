@@ -193,7 +193,7 @@ abstract class Request
         }
         if (null !== $res && 200 !== $res->getStatusCode()) {
             // return body, class must handle this
-            Log::error(sprintf('Status code is %d: %s', $res->getStatusCode(), $e->getMessage()));
+            Log::error(sprintf('Status code is %d', $res->getStatusCode()));
 
             $body = (string) $res->getBody();
         }
